@@ -1,59 +1,10 @@
-/* crypto/bio/bio.h */
-/* Copyright (C) 1995-1998 Eric Young (eay@cryptsoft.com)
- * All rights reserved.
+/*
+ * Copyright 1995-2016 The OpenSSL Project Authors. All Rights Reserved.
  *
- * This package is an SSL implementation written
- * by Eric Young (eay@cryptsoft.com).
- * The implementation was written so as to conform with Netscapes SSL.
- *
- * This library is free for commercial and non-commercial use as long as
- * the following conditions are aheared to.  The following conditions
- * apply to all code found in this distribution, be it the RC4, RSA,
- * lhash, DES, etc., code; not just the SSL code.  The SSL documentation
- * included with this distribution is covered by the same copyright terms
- * except that the holder is Tim Hudson (tjh@cryptsoft.com).
- *
- * Copyright remains Eric Young's, and as such any Copyright notices in
- * the code are not to be removed.
- * If this package is used in a product, Eric Young should be given attribution
- * as the author of the parts of the library used.
- * This can be in the form of a textual message at program startup or
- * in documentation (online or textual) provided with the package.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- * 1. Redistributions of source code must retain the copyright
- *   notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *   notice, this list of conditions and the following disclaimer in the
- *   documentation and/or other materials provided with the distribution.
- * 3. All advertising materials mentioning features or use of this software
- *   must display the following acknowledgement:
- *   "This product includes cryptographic software written by
- *    Eric Young (eay@cryptsoft.com)"
- *   The word 'cryptographic' can be left out if the rouines from the library
- *   being used are not cryptographic related :-).
- * 4. If you include any Windows specific code (or a derivative thereof) from
- *   the apps directory (application code) you must include an acknowledgement:
- *   "This product includes software written by Tim Hudson (tjh@cryptsoft.com)"
- *
- * THIS SOFTWARE IS PROVIDED BY ERIC YOUNG ``AS IS'' AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
- * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- *
- * The licence and distribution terms for any publically available version or
- * derivative of this code cannot be changed.  i.e. this code cannot simply be
- * copied and put under another distribution licence
- * [including the GNU Public Licence.]
+ * Licensed under the OpenSSL license (the "License").  You may not use
+ * this file except in compliance with the License.  You can obtain a copy
+ * in the file LICENSE in the source distribution or at
+ * https://www.openssl.org/source/license.html
  */
 
 module deimos.openssl.bio;
@@ -63,7 +14,7 @@ import deimos.openssl._d_util;
 import core.stdc.stdarg;
 public import deimos.openssl.e_os2;
 
-version(OPENSSL_NO_FP_API) {} else {
+version(OPENSSL_NO_STDIO) {} else {
 import core.stdc.stdio;
 }
 
@@ -88,46 +39,48 @@ public import deimos.openssl.crypto;
 extern (C):
 nothrow:
 
+/* There are the classes of BIOs */
+# define BIO_TYPE_DESCRIPTOR     0x0100 /* socket, fd, connect or accept */
+# define BIO_TYPE_FILTER         0x0200
+# define BIO_TYPE_SOURCE_SINK    0x0400
+
 /* These are the 'types' of BIOs */
 enum BIO_TYPE_NONE = 0;
-enum BIO_TYPE_MEM = (1|0x0400);
-enum BIO_TYPE_FILE = (2|0x0400);
+# define BIO_TYPE_MEM            ( 1|BIO_TYPE_SOURCE_SINK)
+# define BIO_TYPE_FILE           ( 2|BIO_TYPE_SOURCE_SINK)
 
-enum BIO_TYPE_FD = (4|0x0400|0x0100);
-enum BIO_TYPE_SOCKET = (5|0x0400|0x0100);
-enum BIO_TYPE_NULL = (6|0x0400);
-enum BIO_TYPE_SSL = (7|0x0200);
-enum BIO_TYPE_MD = (8|0x0200);		/* passive filter */
-enum BIO_TYPE_BUFFER = (9|0x0200);		/* filter */
-enum BIO_TYPE_CIPHER = (10|0x0200);		/* filter */
-enum BIO_TYPE_BASE64 = (11|0x0200);		/* filter */
-enum BIO_TYPE_CONNECT = (12|0x0400|0x0100);	/* socket - connect */
-enum BIO_TYPE_ACCEPT = (13|0x0400|0x0100);	/* socket for accept */
-enum BIO_TYPE_PROXY_CLIENT = (14|0x0200);		/* client proxy BIO */
-enum BIO_TYPE_PROXY_SERVER = (15|0x0200);		/* server proxy BIO */
-enum BIO_TYPE_NBIO_TEST = (16|0x0200);		/* server proxy BIO */
-enum BIO_TYPE_NULL_FILTER = (17|0x0200);
-enum BIO_TYPE_BER = (18|0x0200);		/* BER -> bin filter */
-enum BIO_TYPE_BIO = (19|0x0400);		/* (half a) BIO pair */
-enum BIO_TYPE_LINEBUFFER = (20|0x0200);		/* filter */
-enum BIO_TYPE_DGRAM = (21|0x0400|0x0100);
+# define BIO_TYPE_FD             ( 4|BIO_TYPE_SOURCE_SINK|BIO_TYPE_DESCRIPTOR)
+# define BIO_TYPE_SOCKET         ( 5|BIO_TYPE_SOURCE_SINK|BIO_TYPE_DESCRIPTOR)
+# define BIO_TYPE_NULL           ( 6|BIO_TYPE_SOURCE_SINK)
+# define BIO_TYPE_SSL            ( 7|BIO_TYPE_FILTER)
+# define BIO_TYPE_MD             ( 8|BIO_TYPE_FILTER)
+# define BIO_TYPE_BUFFER         ( 9|BIO_TYPE_FILTER)
+# define BIO_TYPE_CIPHER         (10|BIO_TYPE_FILTER)
+# define BIO_TYPE_BASE64         (11|BIO_TYPE_FILTER)
+# define BIO_TYPE_CONNECT        (12|BIO_TYPE_SOURCE_SINK|BIO_TYPE_DESCRIPTOR)
+# define BIO_TYPE_ACCEPT         (13|BIO_TYPE_SOURCE_SINK|BIO_TYPE_DESCRIPTOR)
+
+# define BIO_TYPE_NBIO_TEST      (16|BIO_TYPE_FILTER)/* server proxy BIO */
+# define BIO_TYPE_NULL_FILTER    (17|BIO_TYPE_FILTER)
+# define BIO_TYPE_BIO            (19|BIO_TYPE_SOURCE_SINK)/* half a BIO pair */
+# define BIO_TYPE_LINEBUFFER     (20|BIO_TYPE_FILTER)
+# define BIO_TYPE_DGRAM          (21|BIO_TYPE_SOURCE_SINK|BIO_TYPE_DESCRIPTOR)
 version (OPENSSL_NO_SCTP) {} else {
-enum BIO_TYPE_DGRAM_SCTP = (24|0x0400|0x0100);
+#  define BIO_TYPE_DGRAM_SCTP    (24|BIO_TYPE_SOURCE_SINK|BIO_TYPE_DESCRIPTOR)
 }
-enum BIO_TYPE_ASN1 = (22|0x0200);		/* filter */
-enum BIO_TYPE_COMP = (23|0x0200);		/* filter */
 
-enum BIO_TYPE_DESCRIPTOR = 0x0100;	/* socket, fd, connect or accept */
-enum BIO_TYPE_FILTER = 0x0200;
-enum BIO_TYPE_SOURCE_SINK = 0x0400;
+#define BIO_TYPE_START           128
 
-/* BIO_FILENAME_READ|BIO_CLOSE to open or close on free.
- * BIO_set_fp(in,stdin,BIO_NOCLOSE); */
+/*
+ * BIO_FILENAME_READ|BIO_CLOSE to open or close on free.
+ * BIO_set_fp(in,stdin,BIO_NOCLOSE);
+ */
 enum BIO_NOCLOSE = 0x00;
 enum BIO_CLOSE = 0x01;
 
-/* These are used in the following macros and are passed to
- * BIO_ctrl() */
+/*
+ * These are used in the following macros and are passed to BIO_ctrl()
+ */
 enum BIO_CTRL_RESET = 1;  /* opt - rewind/zero etc */
 enum BIO_CTRL_EOF = 2;  /* opt - are we at the eof */
 enum BIO_CTRL_INFO = 3;  /* opt - extra tit-bits */
@@ -141,7 +94,6 @@ enum BIO_CTRL_PENDING = 10;  /* opt - is their more data buffered */
 enum BIO_CTRL_FLUSH = 11;  /* opt - 'flush' buffered output */
 enum BIO_CTRL_DUP = 12;  /* man - extra stuff for 'duped' BIO */
 enum BIO_CTRL_WPENDING = 13;  /* opt - number of bytes still to write */
-/* callback is int cb(BIO* bio,state,ret); */
 enum BIO_CTRL_SET_CALLBACK = 14;  /* opt - set callback function */
 enum BIO_CTRL_GET_CALLBACK = 15;  /* opt - set callback function */
 
@@ -149,9 +101,8 @@ enum BIO_CTRL_SET_FILENAME = 30;	/* BIO_s_file special */
 
 /* dgram BIO stuff */
 enum BIO_CTRL_DGRAM_CONNECT = 31;  /* BIO dgram special */
-enum BIO_CTRL_DGRAM_SET_CONNECTED = 32;  /* allow for an externally
-					  * connected socket to be
-					  * passed in */
+enum BIO_CTRL_DGRAM_SET_CONNECTED = 32;  /* allow for an externally connected
+                                          * socket to be passed in */
 enum BIO_CTRL_DGRAM_SET_RECV_TIMEOUT = 33; /* setsockopt, essentially */
 enum BIO_CTRL_DGRAM_GET_RECV_TIMEOUT = 34; /* getsockopt, essentially */
 enum BIO_CTRL_DGRAM_SET_SEND_TIMEOUT = 35; /* setsockopt, essentially */
@@ -167,21 +118,24 @@ enum BIO_CTRL_DGRAM_MTU_DISCOVER = 39; /* set DF bit on egress packets */
 enum BIO_CTRL_DGRAM_QUERY_MTU = 40; /* as kernel for current MTU */
 enum BIO_CTRL_DGRAM_GET_FALLBACK_MTU = 47;
 enum BIO_CTRL_DGRAM_GET_MTU = 41; /* get cached value for MTU */
-enum BIO_CTRL_DGRAM_SET_MTU = 42; /* set cached value for
-					      * MTU. want to use this
-					      * if asking the kernel
-					      * fails */
+enum BIO_CTRL_DGRAM_SET_MTU = 42;            /* set cached value for MTU.
+                                              * want to use this if asking
+                                              * the kernel fails */
 
-enum BIO_CTRL_DGRAM_MTU_EXCEEDED = 43; /* check whether the MTU
-					      * was exceed in the
-					      * previous write
-					      * operation */
+enum BIO_CTRL_DGRAM_MTU_EXCEEDED = 43;       /* check whether the MTU was
+                                              * exceed in the previous write
+                                              * operation */
 
 enum BIO_CTRL_DGRAM_GET_PEER = 46;
 enum BIO_CTRL_DGRAM_SET_PEER = 44; /* Destination for the data */
 
-enum BIO_CTRL_DGRAM_SET_NEXT_TIMEOUT = 45; /* Next DTLS handshake timeout to
-                                              * adjust socket timeouts */
+enum BIO_CTRL_DGRAM_SET_NEXT_TIMEOUT = 45;   /* Next DTLS handshake timeout
+                                              * to adjust socket timeouts */
+# define BIO_CTRL_DGRAM_SET_DONT_FRAG      48
+
+# define BIO_CTRL_DGRAM_GET_MTU_OVERHEAD   49
+
+# define BIO_CTRL_DGRAM_SET_PEEK_MODE      50
 
 version(OPENSSL_NO_SCTP) {} else {
     /* SCTP stuff */
@@ -209,33 +163,26 @@ enum BIO_FLAGS_WRITE = 0x02;
 enum BIO_FLAGS_IO_SPECIAL = 0x04;
 enum BIO_FLAGS_RWS = (BIO_FLAGS_READ|BIO_FLAGS_WRITE|BIO_FLAGS_IO_SPECIAL);
 enum BIO_FLAGS_SHOULD_RETRY = 0x08;
-/* "UPLINK" flag denotes file descriptors provided by application.
-   It defaults to 0, as most platforms don't require UPLINK interface. */
-enum BIO_FLAGS_UPLINK = 0;
-
-/* Used in BIO_gethostbyname() */
-enum BIO_GHBN_CTRL_HITS = 1;
-enum BIO_GHBN_CTRL_MISSES = 2;
-enum BIO_GHBN_CTRL_CACHE_SIZE = 3;
-enum BIO_GHBN_CTRL_GET_ENTRY = 4;
-enum BIO_GHBN_CTRL_FLUSH = 5;
-
-/* Mostly used in the SSL BIO */
-/* Not used anymore
- * enum BIO_FLAGS_PROTOCOL_DELAYED_READ = 0x10;
- * enum BIO_FLAGS_PROTOCOL_DELAYED_WRITE = 0x20;
- * enum BIO_FLAGS_PROTOCOL_STARTUP = 0x40;
+/*
+ * "UPLINK" flag denotes file descriptors provided by application. It
+ * defaults to 0, as most platforms don't require UPLINK interface.
  */
+enum BIO_FLAGS_UPLINK = 0;
 
 enum BIO_FLAGS_BASE64_NO_NL = 0x100;
 
-/* This is used with memory BIOs: it means we shouldn't free up or change the
- * data in any way.
+/*
+ * This is used with memory BIOs:
+ * BIO_FLAGS_MEM_RDONLY means we shouldn't free up or change the data in any way;
+ * BIO_FLAGS_NONCLEAR_RST means we should't clear data on reset.
  */
 enum BIO_FLAGS_MEM_RDONLY = 0x200;
+# define BIO_FLAGS_NONCLEAR_RST  0x400
 
-alias bio_st BIO;
+alias bio_addr_st BIO_ADDR;
+alias bio_addrinfo_st BIO_ADDRINFO;
 
+int BIO_get_new_index();
 void BIO_set_flags(BIO* b, int flags);
 int  BIO_test_flags(const(BIO)* b, int flags);
 void BIO_clear_flags(BIO* b, int flags);
@@ -266,12 +213,16 @@ auto BIO_should_io_special()(const(BIO)* a) { return BIO_test_flags(a, BIO_FLAGS
 auto BIO_retry_type()(const(BIO)* a) { return BIO_test_flags(a, BIO_FLAGS_RWS); }
 auto BIO_should_retry()(const(BIO)* a) { return BIO_test_flags(a, BIO_FLAGS_SHOULD_RETRY); }
 
-/* The next three are used in conjunction with the
- * BIO_should_io_special() condition.  After this returns true,
- * BIO* BIO_get_retry_BIO(BIO* bio, int* reason); will walk the BIO
- * stack and return the 'reason' for the special and the offending BIO.
- * Given a BIO, BIO_get_retry_reason(bio) will return the code. */
-/* Returned from the SSL bio when the certificate retrieval code had an error */
+/*
+ * The next three are used in conjunction with the BIO_should_io_special()
+ * condition.  After this returns true, BIO *BIO_get_retry_BIO(BIO *bio, int
+ * *reason); will walk the BIO stack and return the 'reason' for the special
+ * and the offending BIO. Given a BIO, BIO_get_retry_reason(bio) will return
+ * the code.
+ */
+/*
+ * Returned from the SSL bio when the certificate retrieval code had an error
+ */
 enum BIO_RR_SSL_X509_LOOKUP = 0x01;
 /* Returned from the connect BIO when a connect would have blocked */
 enum BIO_RR_CONNECT = 0x02;
@@ -286,89 +237,34 @@ enum BIO_CB_PUTS = 0x04;
 enum BIO_CB_GETS = 0x05;
 enum BIO_CB_CTRL = 0x06;
 
-/* The callback is called before and after the underling operation,
- * The BIO_CB_RETURN flag indicates if it is after the call */
+/*
+ * The callback is called before and after the underling operation, The
+ * BIO_CB_RETURN flag indicates if it is after the call
+ */
 enum BIO_CB_RETURN = 0x80;
 auto BIO_CB_return()(int a) { return a|BIO_CB_RETURN; }
 auto BIO_cb_pre()(int a) { return !((a)&BIO_CB_RETURN); }
 auto BIO_cb_post()(int a) { return a&BIO_CB_RETURN; }
 
-ExternC!(c_long function(bio_st*,int,const(char)*,int, c_long,long)) BIO_get_callback(const(BIO)* b);
-void BIO_set_callback(BIO* b,
-	ExternC!(c_long function(bio_st*,int,const(char)*,int, c_long,long)) callback);
+alias ExternC!(c_long function(BIO* b, int oper,const(char)* argp,int argi,
+                               c_long argl, long ret)) BIO_callback_fn;
+BIO_callback_fn BIO_get_callback(const(BIO)* b);
+void BIO_set_callback(BIO* b, BIO_callback_fn callback);
 char* BIO_get_callback_arg(const(BIO)* b);
 void BIO_set_callback_arg(BIO* b, char* arg);
+
+alias bio_method_st BIO_METHOD;
 
 const(char)* BIO_method_name(const(BIO)* b);
 int BIO_method_type(const(BIO)* b);
 
-alias typeof(*(ExternC!(void function(bio_st*, int, const(char)*, int, c_long, c_long))).init) bio_info_cb;
+alias typeof(*(ExternC!(void function(BIO*, int, const(char)*, int, c_long, c_long))).init) bio_info_cb;
 
-struct bio_method_st {
-	int type;
-	const(char)* name;
-	ExternC!(int function(BIO*, const(char)*, int)) bwrite;
-	ExternC!(int function(BIO*, char*, int)) bread;
-	ExternC!(int function(BIO*, const(char)*)) bputs;
-	ExternC!(int function(BIO*, char*, int)) bgets;
-	ExternC!(c_long function(BIO*, int, c_long, void*)) ctrl;
-	ExternC!(int function(BIO*)) create;
-	ExternC!(int function(BIO*)) destroy;
-        ExternC!(c_long function(BIO*, int, bio_info_cb*)) callback_ctrl;
-	}
-alias bio_method_st BIO_METHOD;
-
-struct bio_st
-	{
-	BIO_METHOD* method;
-	/* bio, mode, argp, argi, argl, ret */
-	ExternC!(c_long function(bio_st*,int,const(char)*,int, c_long,long)) callback;
-	char* cb_arg; /* first argument for the callback */
-
-	int init_;
-	int shutdown;
-	int flags;	/* extra storage */
-	int retry_reason;
-	int num;
-	void* ptr;
-	bio_st* next_bio;	/* used by filter BIOs */
-	bio_st* prev_bio;	/* used by filter BIOs */
-	int references;
-	c_ulong num_read;
-	c_ulong num_write;
-
-	CRYPTO_EX_DATA ex_data;
-	};
-
-/+mixin DECLARE_STACK_OF!(BIO);+/
-
-struct bio_f_buffer_ctx_struct {
-
-	/* Buffers are setup like this:
-	 *
-	 * <---------------------- size ----------------------->
-	 * +---------------------------------------------------+
-	 * | consumed | remaining          | free space        |
-	 * +---------------------------------------------------+
-	 * <-- off --><------- len ------->
-	 */
-
-	/* BIO* bio; */ /* this is now in the BIO struct */
-	int ibuf_size;	/* how big is the input buffer */
-	int obuf_size;	/* how big is the output buffer */
-
-	char* ibuf;		/* the char array */
-	int ibuf_len;		/* how many bytes are in it */
-	int ibuf_off;		/* write/read offset */
-
-	char* obuf;		/* the char array */
-	int obuf_len;		/* how many bytes are in it */
-	int obuf_off;		/* write/read offset */
-	}
-alias bio_f_buffer_ctx_struct BIO_F_BUFFER_CTX;
+/+mixin DEFINE_STACK_OF!(BIO);+/
 
 /* Prefix and suffix callback in ASN1 BIO */
-alias typeof(*(ExternC!(int function(BIO* b, ubyte** pbuf, int* plen, void* parg))).init) asn1_ps_func;
+alias typeof(*(ExternC!(int function(BIO* b, ubyte** pbuf, int* plen,
+                                     void* parg))).init) asn1_ps_func;
 
 version(OPENSSL_NO_SCTP) {} else {
 /* SCTP parameter structs */
@@ -398,21 +294,14 @@ struct bio_dgram_sctp_prinfo
 	};
 }
 
-/* connect BIO stuff */
-enum BIO_CONN_S_BEFORE = 1;
-enum BIO_CONN_S_GET_IP = 2;
-enum BIO_CONN_S_GET_PORT = 3;
-enum BIO_CONN_S_CREATE_SOCKET = 4;
-enum BIO_CONN_S_CONNECT = 5;
-enum BIO_CONN_S_OK = 6;
-enum BIO_CONN_S_BLOCKED_CONNECT = 7;
-enum BIO_CONN_S_NBIO = 8;
-/*alias BIO_ctrl BIO_CONN_get_param_hostname; */
+/*
+ * alias BIO_ctrl BIO_CONN_get_param_hostname;
+ */
 
 enum BIO_C_SET_CONNECT = 100;
 enum BIO_C_DO_STATE_MACHINE = 101;
 enum BIO_C_SET_NBIO = 102;
-enum BIO_C_SET_PROXY_PARAM = 103;
+/* enum BIO_C_SET_PROXY_PARAM = 103; */
 enum BIO_C_SET_FD = 104;
 enum BIO_C_GET_FD = 105;
 enum BIO_C_SET_FILE_PTR = 106;
@@ -430,7 +319,7 @@ enum BIO_C_SET_BUFF_SIZE = 117;
 enum BIO_C_SET_ACCEPT = 118;
 enum BIO_C_SSL_MODE = 119;
 enum BIO_C_GET_MD_CTX = 120;
-enum BIO_C_GET_PROXY_PARAM = 121;
+/* enum BIO_C_GET_PROXY_PARAM = 121; */
 enum BIO_C_SET_BUFF_READ_DATA = 122; /* data to read first */
 enum BIO_C_GET_CONNECT = 123;
 enum BIO_C_GET_ACCEPT = 124;
@@ -439,7 +328,8 @@ enum BIO_C_GET_SSL_NUM_RENEGOTIATES = 126;
 enum BIO_C_SET_SSL_RENEGOTIATE_TIMEOUT = 127;
 enum BIO_C_FILE_SEEK = 128;
 enum BIO_C_GET_CIPHER_CTX = 129;
-enum BIO_C_SET_BUF_MEM_EOF_RETURN = 130;/*return end of input value*/
+enum BIO_C_SET_BUF_MEM_EOF_RETURN = 130;            /* return end of input
+                                                     * value */
 enum BIO_C_SET_BIND_MODE = 131;
 enum BIO_C_GET_BIND_MODE = 132;
 enum BIO_C_FILE_TELL = 133;
@@ -468,69 +358,79 @@ enum BIO_C_GET_SUFFIX = 152;
 enum BIO_C_SET_EX_ARG = 153;
 enum BIO_C_GET_EX_ARG = 154;
 
+# define BIO_C_SET_CONNECT_MODE                  155
+
 auto BIO_set_app_data()(BIO* s, void* arg) { return BIO_set_ex_data(s,0,arg); }
 auto BIO_get_app_data()(BIO* s) { return BIO_get_ex_data(s,0); }
 
-/* BIO_s_connect() and BIO_s_socks4a_connect() */
-auto BIO_set_conn_hostname()(BIO* b, char* name) { return BIO_ctrl(b,BIO_C_SET_CONNECT,0,name); }
-auto BIO_set_conn_port()(BIO* b,char* port) { return BIO_ctrl(b,BIO_C_SET_CONNECT,1,port); }
-auto BIO_set_conn_ip()(BIO* b,char* ip) { return BIO_ctrl(b,BIO_C_SET_CONNECT,2,ip); }
-auto BIO_set_conn_int_port()(BIO* b,char* port) { return BIO_ctrl(b,BIO_C_SET_CONNECT,3,port); }
-auto BIO_get_conn_hostname()(BIO* b) { return { return BIO_ptr_ctrl(b,BIO_C_GET_CONNECT,0); }; }
-auto BIO_get_conn_port()(BIO* b) { return { return BIO_ptr_ctrl(b,BIO_C_GET_CONNECT,1); }; }
-auto BIO_get_conn_ip()(BIO* b) { return { return BIO_ptr_ctrl(b,BIO_C_GET_CONNECT,2); }; }
-auto BIO_get_conn_int_port()(BIO* b) { return { return BIO_int_ctrl(b,BIO_C_GET_CONNECT,3,0); }; }
-
-
 auto BIO_set_nbio()(BIO* b,n)	{ return BIO_ctrl(b,BIO_C_SET_NBIO,(n),null); }
 
-/* BIO_s_accept_socket() */
-auto BIO_set_accept_port()(BIO* b,char* name) { return BIO_ctrl(b,BIO_C_SET_ACCEPT,0,name); }
-auto BIO_get_accept_port()(BIO* b)	{ return BIO_ptr_ctrl(b,BIO_C_GET_ACCEPT,0); }
+version (OPENSSL_NO_SOCK) {} else {
+/* IP families we support, for BIO_s_connect() and BIO_s_accept() */
+/* Note: the underlying operating system may not support some of them */
+#  define BIO_FAMILY_IPV4                         4
+#  define BIO_FAMILY_IPV6                         6
+#  define BIO_FAMILY_IPANY                        256
+
+/* BIO_s_connect() */
+auto BIO_set_conn_hostname()(BIO* b, char* name) { return BIO_ctrl(b,BIO_C_SET_CONNECT,0,name); }
+auto BIO_set_conn_port()(BIO* b, char* port) { return BIO_ctrl(b,BIO_C_SET_CONNECT,1,port); }
+auto BIO_set_conn_address()(BIO* b, char* addr) { return BIO_ctrl(b,BIO_C_SET_CONNECT,2,addr); }
+auto BIO_set_conn_ip_family()(BIO* b, int f) { return BIO_int_ctrl(b,BIO_C_SET_CONNECT,3,f); }
+auto BIO_get_conn_hostname()(BIO* b) { return { return BIO_ptr_ctrl(b,BIO_C_GET_CONNECT,0); }; }
+auto BIO_get_conn_port()(BIO* b) { return { return BIO_ptr_ctrl(b,BIO_C_GET_CONNECT,1); }; }
+auto BIO_get_conn_address()(BIO* b) { return { return BIO_ptr_ctrl(b,BIO_C_GET_CONNECT,2); }; }
+auto BIO_get_conn_conn_ip_family()(BIO* b) { return { return BIO_ctrl(b,BIO_C_GET_CONNECT,3); }; }
+auto BIO_set_conn_conn_mode()(BIO* b, c_long n) { return { return BIO_ptr_ctrl(b,BIO_C_SET_CONNECT_MODE,n); }; }
+
+/* BIO_s_accept() */
+auto BIO_set_accept_name()(BIO* b,char* name) { return BIO_ctrl(b,BIO_C_SET_ACCEPT,0,name); }
+auto BIO_set_accept_port()(BIO* b,char* port) { return BIO_ctrl(b,BIO_C_SET_ACCEPT,1,port); }
+auto BIO_get_accept_name()(BIO* b)	{ return BIO_ptr_ctrl(b,BIO_C_GET_ACCEPT,0); }
+auto BIO_get_accept_port()(BIO* b)	{ return BIO_ptr_ctrl(b,BIO_C_GET_ACCEPT,1); }
+auto BIO_get_accept_peer_name()(BIO* b)	{ return BIO_ptr_ctrl(b,BIO_C_GET_ACCEPT,2); }
+auto BIO_get_accept_peer_port()(BIO* b)	{ return BIO_ptr_ctrl(b,BIO_C_GET_ACCEPT,3); }
 /* auto BIO_set_nbio()(BIO* b,n)	{ return BIO_ctrl(b,BIO_C_SET_NBIO,(n),null); } */
-auto BIO_set_nbio_accept()(BIO* b,int n) { return BIO_ctrl(b,BIO_C_SET_ACCEPT,1,(n)?"a".ptr:null); }
-auto BIO_set_accept_bios()(BIO* b,char* bio) { return BIO_ctrl(b,BIO_C_SET_ACCEPT,2,bio); }
+auto BIO_set_nbio_accept()(BIO* b,int n) { return BIO_ctrl(b,BIO_C_SET_ACCEPT,2,(n)?"a".ptr:null); }
+auto BIO_set_accept_bios()(BIO* b,char* bio) { return BIO_ctrl(b,BIO_C_SET_ACCEPT,3,bio); }
+auto BIO_set_accept_ip_family()(BIO* b,c_long f) { return BIO_int_ctrl(b,BIO_C_SET_ACCEPT,4,f); }
+auto BIO_get_accept_ip_family()(BIO* b) { return BIO_ctrl(b,BIO_C_GET_ACCEPT,4,null); }
 
+/* Aliases kept for backward compatibility */
 enum BIO_BIND_NORMAL = 0;
-enum BIO_BIND_REUSEADDR_IF_UNUSED = 1;
-enum BIO_BIND_REUSEADDR = 2;
+#  define BIO_BIND_REUSEADDR              BIO_SOCK_REUSEADDR
+#  define BIO_BIND_REUSEADDR_IF_UNUSED    BIO_SOCK_REUSEADDR
 auto BIO_set_bind_mode()(BIO* b,c_long mode) { return BIO_ctrl(b,BIO_C_SET_BIND_MODE,mode,null); }
-auto BIO_get_bind_mode()(BIO* b, c_long dummy) { return BIO_ctrl(b,BIO_C_GET_BIND_MODE,0,null); }
+auto BIO_get_bind_mode()(BIO* b) { return BIO_ctrl(b,BIO_C_GET_BIND_MODE,0,null); }
 
+/* BIO_s_accept() and BIO_s_connect() */
 alias BIO_do_handshake BIO_do_connect;
 alias BIO_do_handshake BIO_do_accept;
-auto BIO_do_handshake()(BIO* b)	{ return BIO_ctrl(b,BIO_C_DO_STATE_MACHINE,0,null); }
+} /* OPENSSL_NO_SOCK */
 
-/* BIO_s_proxy_client() */
-auto BIO_set_url()(BIO* b,char* url)	{ return BIO_ctrl(b,BIO_C_SET_PROXY_PARAM,0,url); }
-auto BIO_set_proxies()(BIO* b,char* p)	{ return BIO_ctrl(b,BIO_C_SET_PROXY_PARAM,1,p); }
-/* BIO_set_nbio()(BIO* b,n) */
-auto BIO_set_filter_bio()(BIO* b,char* s) { return BIO_ctrl(b,BIO_C_SET_PROXY_PARAM,2,s); }
-/* BIO* BIO_get_filter_bio(BIO* bio); */
-auto BIO_set_proxy_cb()(BIO* b,ExternC!(void* function()) cb) { return BIO_callback_ctrl(b,BIO_C_SET_PROXY_PARAM,3,cb); }
-auto BIO_set_proxy_header()(BIO* b,char* sk) { return BIO_ctrl(b,BIO_C_SET_PROXY_PARAM,4,sk); }
-auto BIO_set_no_connect_return()(BIO* b,bool t) { return BIO_int_ctrl(b,BIO_C_SET_PROXY_PARAM,5,t); }
+auto BIO_do_handshake()(BIO* b) { return BIO_ctrl(b,BIO_C_DO_STATE_MACHINE,0,null); }
 
-auto BIO_get_proxy_header()(BIO* b,char* skp) { return BIO_ctrl(b,BIO_C_GET_PROXY_PARAM,0,skp); }
-auto BIO_get_proxies()(BIO* b,char* pxy_p) { return BIO_ctrl(b,BIO_C_GET_PROXY_PARAM,1,(pxy_p)); }
-auto BIO_get_url()(BIO* b,char*url)	{ return BIO_ctrl(b,BIO_C_GET_PROXY_PARAM,2,(url)); }
-auto BIO_get_no_connect_return()(BIO* b)	{ return BIO_ctrl(b,BIO_C_GET_PROXY_PARAM,5,null); }
-
+/* BIO_s_datagram(), BIO_s_fd(), BIO_s_socket(), BIO_s_accept() and BIO_s_connect() */
 auto BIO_set_fd()(BIO* b,int fd, c_long c)	{ return BIO_int_ctrl(b,BIO_C_SET_FD,c,fd); }
 auto BIO_get_fd()(BIO* b,c_long c)		{ return BIO_ctrl(b,BIO_C_GET_FD,0,cast(void*)c); }
 
+/* BIO_s_file() */
 auto BIO_set_fp()(BIO* b,FILE* fp,c_long c)	{ return BIO_ctrl(b,BIO_C_SET_FILE_PTR,c,fp); }
 auto BIO_get_fp()(BIO* b,FILE** fpp)	{ return BIO_ctrl(b,BIO_C_GET_FILE_PTR,0,fpp); }
 
+/* BIO_s_fd() and BIO_s_file() */
 auto BIO_seek()(BIO* b,ofs)	{ return cast(int) BIO_ctrl(b,BIO_C_FILE_SEEK,ofs,null); }
 auto BIO_tell()(BIO* b)	{ return cast(int) BIO_ctrl(b,BIO_C_FILE_TELL,0,null); }
 
-/* name is cast to lose const, but might be better to route through a function
-   so we can do it safely */
+/*
+ * name is cast to lose const, but might be better to route through a
+ * function so we can do it safely
+ */
 //#ifdef CONST_STRICT
-///* If you are wondering why this isn't defined, its because CONST_STRICT is
-// * purely a compile-time kludge to allow const to be checked.
-// */
+/*
+ * If you are wondering why this isn't defined, its because CONST_STRICT is
+ * purely a compile-time kludge to allow const to be checked.
+ */
 //int BIO_read_filename(BIO* b,const(char)* name);
 //#else
 auto BIO_read_filename()(BIO* b,const(char)* name) { return BIO_ctrl(b,BIO_C_SET_FILENAME,BIO_CLOSE|BIO_FP_READ,name); }
@@ -539,10 +439,12 @@ auto BIO_write_filename()(BIO* b,const(char)* name) { return BIO_ctrl(b,BIO_C_SE
 auto BIO_append_filename()(BIO* b,const(char)* name) { return BIO_ctrl(b,BIO_C_SET_FILENAME,BIO_CLOSE|BIO_FP_APPEND,name); }
 auto BIO_rw_filename()(BIO* b,const(char)* name) { return BIO_ctrl(b,BIO_C_SET_FILENAME,BIO_CLOSE|BIO_FP_READ|BIO_FP_WRITE,name); }
 
-/* WARNING WARNING, this ups the reference count on the read bio of the
- * SSL structure.  This is because the ssl read BIO is now pointed to by
- * the next_bio field in the bio.  So when you free the BIO, make sure
- * you are doing a BIO_free_all() to catch the underlying BIO. */
+/*
+ * WARNING WARNING, this ups the reference count on the read bio of the SSL
+ * structure.  This is because the ssl read BIO is now pointed to by the
+ * next_bio field in the bio.  So when you free the BIO, make sure you are
+ * doing a BIO_free_all() to catch the underlying BIO.
+ */
 auto BIO_set_ssl()(BIO* b,SSL* ssl,c_long c) { return BIO_ctrl(b,BIO_C_SET_SSL,c,ssl); }
 auto BIO_get_ssl()(BIO* b,SSL** sslp)	{ return BIO_ctrl(b,BIO_C_GET_SSL,0,sslp); }
 auto BIO_set_ssl_mode()(BIO* b,c_long client)	{ return BIO_ctrl(b,BIO_C_SSL_MODE,client,null); }
@@ -605,21 +507,20 @@ int BIO_ctrl_reset_read_request(BIO* b);
 
 /* ctrl macros for dgram */
 auto BIO_ctrl_dgram_connect()(BIO* b,void* peer) { return cast(int) BIO_ctrl(b,BIO_CTRL_DGRAM_CONNECT,0, peer); }
-auto BIO_ctrl_set_connected()(BIO* b, c_long state, peer) { return cast(int) BIO_ctrl(b, BIO_CTRL_DGRAM_SET_CONNECTED, state, peer); }
+auto BIO_ctrl_set_connected()(BIO* b, peer) { return cast(int) BIO_ctrl(b, BIO_CTRL_DGRAM_SET_CONNECTED, 0, peer); }
 auto BIO_dgram_recv_timedout()(BIO* b) { return cast(int) BIO_ctrl(b, BIO_CTRL_DGRAM_GET_RECV_TIMER_EXP, 0, null); }
 auto BIO_dgram_send_timedout()(BIO* b) { return cast(int) BIO_ctrl(b, BIO_CTRL_DGRAM_GET_SEND_TIMER_EXP, 0, null); }
 auto BIO_dgram_get_peer()(BIO* b,void* peer) { return cast(int) BIO_ctrl(b, BIO_CTRL_DGRAM_GET_PEER, 0, peer); }
 auto BIO_dgram_set_peer()(BIO* b,void* peer) { return cast(int) BIO_ctrl(b, BIO_CTRL_DGRAM_SET_PEER, 0, peer); }
+auto BIO_dgram_get_mtu_overhead()(BIO* b) { return cast(uint) BIO_ctrl((b), BIO_CTRL_DGRAM_GET_MTU_OVERHEAD, 0, null); }
 
-/* These two aren't currently implemented */
-/* int BIO_get_ex_num(BIO* bio); */
-/* void BIO_set_ex_free_func(BIO* bio,int idx,ExternC!(void function()) cb); */
+auto BIO_get_ex_new_index(c_long l, void* p, CRYPTO_EX_new* newf, CRYPTO_EX_dup* dupf, CRYPTO_EX_free* freef) {
+    return CRYPTO_get_ex_new_index(CRYPTO_EX_INDEX_BIO, l, p, newf, dupf, freef);
+}
 int BIO_set_ex_data(BIO* bio,int idx,void* data);
 void* BIO_get_ex_data(BIO* bio,int idx);
-int BIO_get_ex_new_index(c_long argl, void* argp, CRYPTO_EX_new* new_func,
-	CRYPTO_EX_dup* dup_func, CRYPTO_EX_free* free_func);
-c_ulong BIO_number_read(BIO* bio);
-c_ulong BIO_number_written(BIO* bio);
+ulong BIO_number_read(BIO* bio);
+ulong BIO_number_written(BIO* bio);
 
 /* For BIO_f_asn1() */
 int BIO_asn1_set_prefix(BIO* b, asn1_ps_func* prefix,
@@ -631,32 +532,40 @@ int BIO_asn1_set_suffix(BIO* b, asn1_ps_func* suffix,
 int BIO_asn1_get_suffix(BIO* b, asn1_ps_func** psuffix,
 					asn1_ps_func** psuffix_free);
 
-version (OPENSSL_NO_FP_API) {} else {
-BIO_METHOD* BIO_s_file();
+const(BIO_METHOD)* BIO_s_file();
 BIO* BIO_new_file(const(char)* filename, const(char)* mode);
+version (OPENSSL_NO_STDIO) {} else {
 BIO* BIO_new_fp(FILE* stream, int close_flag);
-alias BIO_s_file BIO_s_file_internal;
 }
-BIO* 	BIO_new(BIO_METHOD* type);
-int	BIO_set(BIO* a,BIO_METHOD* type);
-int	BIO_free(BIO* a);
-void	BIO_vfree(BIO* a);
+BIO* BIO_new(BIO_METHOD* type);
+int BIO_free(BIO* a);
+void BIO_set_data(BIO* a, void* ptr);
+void* BIO_get_data(BIO *a);
+void BIO_set_init(BIO* a, int init);
+int BIO_get_init(BIO* a);
+void BIO_set_shutdown(BIO* a, int shut);
+int BIO_get_shutdown(BIO* a);
+void BIO_vfree(BIO* a);
+int BIO_up_ref(BIO* a);
 int	BIO_read(BIO* b, void* data, int len);
 int	BIO_gets(BIO* bp,char* buf, int size);
 int	BIO_write(BIO* b, const(void)* data, int len);
 int	BIO_puts(BIO* bp,const(char)* buf);
 int	BIO_indent(BIO* b,int indent,int max);
 c_long	BIO_ctrl(BIO* bp,int cmd,c_long larg,void* parg);
-c_long BIO_callback_ctrl(BIO* b, int cmd, ExternC!(void function(bio_st*, int, const(char)*, int, c_long, c_long)) fp);
-char* 	BIO_ptr_ctrl(BIO* bp,int cmd,c_long larg);
+c_long BIO_callback_ctrl(BIO* b, int cmd,
+                         ExternC!(void function(BIO*, int, const(char)*, int, c_long, c_long)) fp);
+void* BIO_ptr_ctrl(BIO* bp,int cmd,c_long larg);
 c_long	BIO_int_ctrl(BIO* bp,int cmd,c_long larg,int iarg);
 BIO* 	BIO_push(BIO* b,BIO* append);
 BIO* 	BIO_pop(BIO* b);
 void	BIO_free_all(BIO* a);
 BIO* 	BIO_find_type(BIO* b,int bio_type);
 BIO* 	BIO_next(BIO* b);
+void BIO_set_next(BIO* b, BIO* next);
 BIO* 	BIO_get_retry_BIO(BIO* bio, int* reason);
 int	BIO_get_retry_reason(BIO* bio);
+void BIO_set_retry_reason(BIO* bio, int reason);
 BIO* 	BIO_dup_chain(BIO* in_);
 
 int BIO_nread0(BIO* bio, char** buf);
@@ -667,35 +576,44 @@ int BIO_nwrite(BIO* bio, char** buf, int num);
 c_long BIO_debug_callback(BIO* bio,int cmd,const(char)* argp,int argi,
 	c_long argl,c_long ret);
 
-BIO_METHOD* BIO_s_mem();
-BIO* BIO_new_mem_buf(void* buf, int len);
-BIO_METHOD* BIO_s_socket();
-BIO_METHOD* BIO_s_connect();
-BIO_METHOD* BIO_s_accept();
-BIO_METHOD* BIO_s_fd();
-// #ifndef OPENSSL_SYS_OS2
-BIO_METHOD* BIO_s_log();
-// #endif
-BIO_METHOD* BIO_s_bio();
-BIO_METHOD* BIO_s_null();
-BIO_METHOD* BIO_f_null();
-BIO_METHOD* BIO_f_buffer();
-//#ifdef OPENSSL_SYS_VMS
-//BIO_METHOD* BIO_f_linebuffer();
-//#endif
-BIO_METHOD* BIO_f_nbio_test();
+const(BIO_METHOD)* BIO_s_mem();
+const(BIO_METHOD)* BIO_s_secmem();
+BIO* BIO_new_mem_buf(const(void)* buf, int len);
+version (OPENSSL_NO_SOCK) {} else {
+const(BIO_METHOD)* BIO_s_socket();
+const(BIO_METHOD)* BIO_s_connect();
+const(BIO_METHOD)* BIO_s_accept();
+}
+const(BIO_METHOD)* BIO_s_fd();
+const(BIO_METHOD)* BIO_s_log();
+const(BIO_METHOD)* BIO_s_bio();
+const(BIO_METHOD)* BIO_s_null();
+const(BIO_METHOD)* BIO_f_null();
+const(BIO_METHOD)* BIO_f_buffer();
+const(BIO_METHOD)* BIO_f_linebuffer();
+const(BIO_METHOD)* BIO_f_nbio_test();
 version (OPENSSL_NO_DGRAM) {} else {
-BIO_METHOD* BIO_s_datagram();
+const(BIO_METHOD)* BIO_s_datagram();
+int BIO_dgram_non_fatal_error(int error);
+BIO* BIO_new_dgram(int fd, int close_flag);
 version(OPENSSL_NO_SCTP) {} else {
-BIO_METHOD *BIO_s_datagram_sctp();
+const(BIO_METHOD) *BIO_s_datagram_sctp();
+BIO* BIO_new_dgram_sctp(int fd, int close_flag);
+int BIO_dgram_is_sctp(BIO* bio);
+int BIO_dgram_sctp_notification_cb(BIO* b,
+                                   ExternC!(void function       (BIO *bio,
+                                                                 void *context,
+                                                                 void *buf)) handle_notifications,
+                                   void* context);
+int BIO_dgram_sctp_wait_for_dry(BIO *b);
+int BIO_dgram_sctp_msg_waiting(BIO *b);
 }
 }
 
-/* BIO_METHOD* BIO_f_ber(); */
-
+version (OPENSSL_NO_SOCK) {} else {
 int BIO_sock_should_retry(int i);
 int BIO_sock_non_fatal_error(int error);
-int BIO_dgram_non_fatal_error(int error);
+}
 
 int BIO_fd_should_retry(int i);
 int BIO_fd_non_fatal_error(int error);
@@ -705,80 +623,165 @@ int BIO_dump_indent_cb(ExternC!(int function(const(void)* data, size_t len, void
 		       void* u, const(char)* s, int len, int indent);
 int BIO_dump(BIO* b,const(char)* bytes,int len);
 int BIO_dump_indent(BIO* b,const(char)* bytes,int len,int indent);
-version (OPENSSL_NO_FP_API) {} else {
+version (OPENSSL_NO_STDIO) {} else {
 int BIO_dump_fp(FILE* fp, const(char)* s, int len);
 int BIO_dump_indent_fp(FILE* fp, const(char)* s, int len, int indent);
 }
-hostent* BIO_gethostbyname(const(char)* name);
-/* We might want a thread-safe interface too:
- * hostent* BIO_gethostbyname_r(const(char)* name,
- *    hostent* result, void* buffer, size_t buflen);
- * or something similar (caller allocates a struct hostent,
- * pointed to by "result", and additional buffer space for the various
- * substructures; if the buffer does not suffice, NULL is returned
- * and an appropriate error code is set).
- */
+
+version (OPENSSL_NO_SOCK) {} else {
+BIO_ADDR* BIO_ADDR_new();
+int BIO_ADDR_rawmake(BIO_ADDR* ap, int family,
+                     const(void)* where, size_t wherelen, ushort port);
+void BIO_ADDR_free(BIO_ADDR*);
+void BIO_ADDR_clear(BIO_ADDR* ap);
+int BIO_ADDR_family(const(BIO_ADDR)* ap);
+int BIO_ADDR_rawaddress(const(BIO_ADDR)* ap, void* p, size_t* l);
+ushort BIO_ADDR_rawport(const(BIO_ADDR)* ap);
+char* BIO_ADDR_hostname_string(const(BIO_ADDR)* ap, int numeric);
+char* BIO_ADDR_service_string(const(BIO_ADDR)* ap, int numeric);
+char* BIO_ADDR_path_string(const(BIO_ADDR)* ap);
+
+const(BIO_ADDRINFO)* BIO_ADDRINFO_next(const(BIO_ADDRINFO)* bai);
+int BIO_ADDRINFO_family(const(BIO_ADDRINFO)* bai);
+int BIO_ADDRINFO_socktype(const(BIO_ADDRINFO)* bai);
+int BIO_ADDRINFO_protocol(const(BIO_ADDRINFO)* bai);
+const(BIO_ADDR)* BIO_ADDRINFO_address(const(BIO_ADDRINFO)* bai);
+void BIO_ADDRINFO_free(BIO_ADDRINFO* bai);
+
+enum BIO_hostserv_priorities {
+    BIO_PARSE_PRIO_HOST, BIO_PARSE_PRIO_SERV
+}
+int BIO_parse_hostserv(const(char)* hostserv, char** host, char** service,
+                       enum BIO_hostserv_priorities hostserv_prio);
+enum BIO_lookup_type {
+    BIO_LOOKUP_CLIENT, BIO_LOOKUP_SERVER
+}
+int BIO_lookup(const(char)* host, const(char)* service,
+               enum BIO_lookup_type lookup_type,
+               int family, int socktype, BIO_ADDRINFO** res);
 int BIO_sock_error(int sock);
 int BIO_socket_ioctl(int fd, c_long type, void* arg);
 int BIO_socket_nbio(int fd,int mode);
+int BIO_sock_init();
+// TODO:
+# if OPENSSL_API_COMPAT < 0x10100000L
+void BIO_sock_cleanup();
+# endif
+int BIO_set_tcp_ndelay(int sock,int turn_on);
+
+/+ TODO:
+DEPRECATEDIN_1_1_0(struct hostent *BIO_gethostbyname(const char *name))
+DEPRECATEDIN_1_1_0(int BIO_get_port(const char *str, unsigned short *port_ptr))
+DEPRECATEDIN_1_1_0(int BIO_get_host_ip(const char *str, unsigned char *ip))
+DEPRECATEDIN_1_1_0(int BIO_get_accept_socket(char *host_port, int mode))
+DEPRECATEDIN_1_1_0(int BIO_accept(int sock, char **ip_port))
++/
 int BIO_get_port(const(char)* str, ushort* port_ptr);
 int BIO_get_host_ip(const(char)* str, ubyte* ip);
 int BIO_get_accept_socket(char* host_port,int mode);
 int BIO_accept(int sock,char** ip_port);
-int BIO_sock_init();
-void BIO_sock_cleanup();
-int BIO_set_tcp_ndelay(int sock,int turn_on);
+
+union BIO_sock_info_u {
+    BIO_ADDR* addr;
+}
+enum BIO_sock_info_type {
+    BIO_SOCK_INFO_ADDRESS
+}
+int BIO_sock_info(int sock,
+                  enum BIO_sock_info_type type, union BIO_sock_info_u* info);
+
+#  define BIO_SOCK_REUSEADDR    0x01
+#  define BIO_SOCK_V6_ONLY      0x02
+#  define BIO_SOCK_KEEPALIVE    0x04
+#  define BIO_SOCK_NONBLOCK     0x08
+#  define BIO_SOCK_NODELAY      0x10
+
+int BIO_socket(int domain, int socktype, int protocol, int options);
+int BIO_connect(int sock, const(BIO_ADDR)* addr, int options);
+int BIO_listen(int sock, const(BIO_ADDR)* addr, int options);
+int BIO_accept_ex(int accept_sock, BIO_ADDR* addr, int options);
+int BIO_closesocket(int sock);
 
 BIO* BIO_new_socket(int sock, int close_flag);
-BIO* BIO_new_dgram(int fd, int close_flag);
-version(OPENSSL_NO_SCTP) {} else {
-BIO *BIO_new_dgram_sctp(int fd, int close_flag);
-int BIO_dgram_is_sctp(BIO *bio);
-int BIO_dgram_sctp_notification_cb(BIO *b,
-                                   ExternC!(void function(BIO *bio, void *context, void *buf)) handle_notifications,
-                                   void *context);
-int BIO_dgram_sctp_wait_for_dry(BIO *b);
-int BIO_dgram_sctp_msg_waiting(BIO *b);
-}
+BIO* BIO_new_connect(const(char)* host_port);
+BIO* BIO_new_accept(const(char)* host_port);
+} /* OPENSSL_NO_SOCK*/
+
 BIO* BIO_new_fd(int fd, int close_flag);
-BIO* BIO_new_connect(char* host_port);
-BIO* BIO_new_accept(char* host_port);
 
 int BIO_new_bio_pair(BIO** bio1, size_t writebuf1,
 	BIO** bio2, size_t writebuf2);
-/* If successful, returns 1 and in* bio1, *bio2 two BIO pair endpoints.
- * Otherwise returns 0 and sets* bio1 and* bio2 to NULL.
- * Size 0 uses default value.
+/*
+ * If successful, returns 1 and in *bio1, *bio2 two BIO pair endpoints.
+ * Otherwise returns 0 and sets *bio1 and *bio2 to NULL. Size 0 uses default
+ * value.
  */
 
 void BIO_copy_next_retry(BIO* b);
 
-/*long BIO_ghbn_ctrl(int cmd,int iarg,char* parg);*/
+/*
+ * long BIO_ghbn_ctrl(int cmd,int iarg,char *parg);
+ */
 
 int BIO_printf(BIO* bio, const(char)* format, ...);
 int BIO_vprintf(BIO* bio, const(char)* format, va_list args);
 int BIO_snprintf(char* buf, size_t n, const(char)* format, ...);
 int BIO_vsnprintf(char* buf, size_t n, const(char)* format, va_list args);
 
+BIO_METHOD* BIO_meth_new(int type, const(char)* name);
+void BIO_meth_free(BIO_METHOD* biom);
+// TODO:
+/+
+int (*BIO_meth_get_write(BIO_METHOD *biom)) (BIO *, const char *, int);
+int BIO_meth_set_write(BIO_METHOD *biom,
+                       int (*write) (BIO *, const char *, int));
+int (*BIO_meth_get_read(BIO_METHOD *biom)) (BIO *, char *, int);
+int BIO_meth_set_read(BIO_METHOD *biom,
+                      int (*read) (BIO *, char *, int));
+int (*BIO_meth_get_puts(BIO_METHOD *biom)) (BIO *, const char *);
+int BIO_meth_set_puts(BIO_METHOD *biom,
+                      int (*puts) (BIO *, const char *));
+int (*BIO_meth_get_gets(BIO_METHOD *biom)) (BIO *, char *, int);
+int BIO_meth_set_gets(BIO_METHOD *biom,
+                      int (*gets) (BIO *, char *, int));
+long (*BIO_meth_get_ctrl(BIO_METHOD *biom)) (BIO *, int, long, void *);
+int BIO_meth_set_ctrl(BIO_METHOD *biom,
+                      long (*ctrl) (BIO *, int, long, void *));
+int (*BIO_meth_get_create(BIO_METHOD *bion)) (BIO *);
+int BIO_meth_set_create(BIO_METHOD *biom, int (*create) (BIO *));
+int (*BIO_meth_get_destroy(BIO_METHOD *biom)) (BIO *);
+int BIO_meth_set_destroy(BIO_METHOD *biom, int (*destroy) (BIO *));
+long (*BIO_meth_get_callback_ctrl(BIO_METHOD *biom))
+                                 (BIO *, int, bio_info_cb *);
+int BIO_meth_set_callback_ctrl(BIO_METHOD *biom,
+                               long (*callback_ctrl) (BIO *, int,
+                                                      bio_info_cb *));
++/
+
 /* BEGIN ERROR CODES */
-/* The following lines are auto generated by the script mkerr.pl. Any changes
+/*
+ * The following lines are auto generated by the script mkerr.pl. Any changes
  * made after this point may be overwritten when the script is next run.
  */
-void ERR_load_BIO_strings();
+int ERR_load_BIO_strings();
 
 /* Error codes for the BIO functions. */
 
 /* Function codes. */
 enum BIO_F_ACPT_STATE = 100;
+# define BIO_F_ADDR_STRINGS                               134
 enum BIO_F_BIO_ACCEPT = 101;
-enum BIO_F_BIO_BER_GET_HEADER = 102;
+# define BIO_F_BIO_ACCEPT_EX                              137
+# define BIO_F_BIO_ADDR_NEW                               144
 enum BIO_F_BIO_CALLBACK_CTRL = 131;
+# define BIO_F_BIO_CONNECT                                138
 enum BIO_F_BIO_CTRL = 103;
-enum BIO_F_BIO_GETHOSTBYNAME = 120;
 enum BIO_F_BIO_GETS = 104;
-enum BIO_F_BIO_GET_ACCEPT_SOCKET = 105;
 enum BIO_F_BIO_GET_HOST_IP = 106;
+# define BIO_F_BIO_GET_NEW_INDEX                          102
 enum BIO_F_BIO_GET_PORT = 107;
+# define BIO_F_BIO_LISTEN                                 139
+# define BIO_F_BIO_LOOKUP                                 135
 enum BIO_F_BIO_MAKE_PAIR = 121;
 enum BIO_F_BIO_NEW = 108;
 enum BIO_F_BIO_NEW_FILE = 109;
@@ -787,49 +790,59 @@ enum BIO_F_BIO_NREAD = 123;
 enum BIO_F_BIO_NREAD0 = 124;
 enum BIO_F_BIO_NWRITE = 125;
 enum BIO_F_BIO_NWRITE0 = 122;
+# define BIO_F_BIO_PARSE_HOSTSERV                         136
 enum BIO_F_BIO_PUTS = 110;
 enum BIO_F_BIO_READ = 111;
+# define BIO_F_BIO_SOCKET                                 140
+# define BIO_F_BIO_SOCKET_NBIO                            142
+# define BIO_F_BIO_SOCK_INFO                              141
 enum BIO_F_BIO_SOCK_INIT = 112;
 enum BIO_F_BIO_WRITE = 113;
 enum BIO_F_BUFFER_CTRL = 114;
 enum BIO_F_CONN_CTRL = 127;
 enum BIO_F_CONN_STATE = 115;
 enum BIO_F_DGRAM_SCTP_READ = 132;
+# define BIO_F_DGRAM_SCTP_WRITE                           133
 enum BIO_F_FILE_CTRL = 116;
 enum BIO_F_FILE_READ = 130;
 enum BIO_F_LINEBUFFER_CTRL = 129;
-enum BIO_F_MEM_READ = 128;
 enum BIO_F_MEM_WRITE = 117;
 enum BIO_F_SSL_NEW = 118;
-enum BIO_F_WSASTARTUP = 119;
 
 /* Reason codes. */
 enum BIO_R_ACCEPT_ERROR = 100;
+# define BIO_R_ADDRINFO_ADDR_IS_NOT_AF_INET               141
+# define BIO_R_AMBIGUOUS_HOST_OR_SERVICE                  129
 enum BIO_R_BAD_FOPEN_MODE = 101;
-enum BIO_R_BAD_HOSTNAME_LOOKUP = 102;
 enum BIO_R_BROKEN_PIPE = 124;
 enum BIO_R_CONNECT_ERROR = 103;
-enum BIO_R_EOF_ON_MEMORY_BIO = 127;
-enum BIO_R_ERROR_SETTING_NBIO = 104;
-enum BIO_R_ERROR_SETTING_NBIO_ON_ACCEPTED_SOCKET = 105;
-enum BIO_R_ERROR_SETTING_NBIO_ON_ACCEPT_SOCKET = 106;
 enum BIO_R_GETHOSTBYNAME_ADDR_IS_NOT_AF_INET = 107;
+# define BIO_R_GETSOCKNAME_ERROR                          132
+# define BIO_R_GETSOCKNAME_TRUNCATED_ADDRESS              133
+# define BIO_R_GETTING_SOCKTYPE                           134
 enum BIO_R_INVALID_ARGUMENT = 125;
-enum BIO_R_INVALID_IP_ADDRESS = 108;
+# define BIO_R_INVALID_SOCKET                             135
 enum BIO_R_IN_USE = 123;
-enum BIO_R_KEEPALIVE = 109;
+# define BIO_R_LISTEN_V6_ONLY                             136
+# define BIO_R_LOOKUP_RETURNED_NOTHING                    142
+# define BIO_R_MALFORMED_HOST_OR_SERVICE                  130
 enum BIO_R_NBIO_CONNECT_ERROR = 110;
-enum BIO_R_NO_ACCEPT_PORT_SPECIFIED = 111;
-enum BIO_R_NO_HOSTNAME_SPECIFIED = 112;
+# define BIO_R_NO_ACCEPT_ADDR_OR_SERVICE_SPECIFIED        143
+# define BIO_R_NO_HOSTNAME_OR_SERVICE_SPECIFIED           144
 enum BIO_R_NO_PORT_DEFINED = 113;
-enum BIO_R_NO_PORT_SPECIFIED = 114;
 enum BIO_R_NO_SUCH_FILE = 128;
 enum BIO_R_NULL_PARAMETER = 115;
-enum BIO_R_TAG_MISMATCH = 116;
 enum BIO_R_UNABLE_TO_BIND_SOCKET = 117;
 enum BIO_R_UNABLE_TO_CREATE_SOCKET = 118;
+# define BIO_R_UNABLE_TO_KEEPALIVE                        137
 enum BIO_R_UNABLE_TO_LISTEN_SOCKET = 119;
+# define BIO_R_UNABLE_TO_NODELAY                          138
+# define BIO_R_UNABLE_TO_REUSEADDR                        139
+# define BIO_R_UNAVAILABLE_IP_FAMILY                      145
 enum BIO_R_UNINITIALIZED = 120;
+# define BIO_R_UNKNOWN_INFO_TYPE                          140
+# define BIO_R_UNSUPPORTED_IP_FAMILY                      146
 enum BIO_R_UNSUPPORTED_METHOD = 121;
+# define BIO_R_UNSUPPORTED_PROTOCOL_FAMILY                131
 enum BIO_R_WRITE_TO_READ_ONLY_BIO = 126;
 enum BIO_R_WSASTARTUP = 122;
