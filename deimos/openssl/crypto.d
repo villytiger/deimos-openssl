@@ -1,113 +1,12 @@
-/* crypto/crypto.h */
-/* ====================================================================
- * Copyright (c) 1998-2006 The OpenSSL Project.  All rights reserved.
+/*
+ * Copyright 1995-2016 The OpenSSL Project Authors. All Rights Reserved.
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *   notice, this list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form must reproduce the above copyright
- *   notice, this list of conditions and the following disclaimer in
- *   the documentation and/or other materials provided with the
- *   distribution.
- *
- * 3. All advertising materials mentioning features or use of this
- *   software must display the following acknowledgment:
- *   "This product includes software developed by the OpenSSL Project
- *   for use in the OpenSSL Toolkit. (http://www.openssl.org/)"
- *
- * 4. The names "OpenSSL Toolkit" and "OpenSSL Project" must not be used to
- *   endorse or promote products derived from this software without
- *   prior written permission. For written permission, please contact
- *   openssl-core@openssl.org.
- *
- * 5. Products derived from this software may not be called "OpenSSL"
- *   nor may "OpenSSL" appear in their names without prior written
- *   permission of the OpenSSL Project.
- *
- * 6. Redistributions of any form whatsoever must retain the following
- *   acknowledgment:
- *   "This product includes software developed by the OpenSSL Project
- *   for use in the OpenSSL Toolkit (http://www.openssl.org/)"
- *
- * THIS SOFTWARE IS PROVIDED BY THE OpenSSL PROJECT ``AS IS'' AND ANY
- * EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
- * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE OpenSSL PROJECT OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
- * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
- * OF THE POSSIBILITY OF SUCH DAMAGE.
- * ====================================================================
- *
- * This product includes cryptographic software written by Eric Young
- * (eay@cryptsoft.com).  This product includes software written by Tim
- * Hudson (tjh@cryptsoft.com).
- *
+ * Licensed under the OpenSSL license (the "License").  You may not use
+ * this file except in compliance with the License.  You can obtain a copy
+ * in the file LICENSE in the source distribution or at
+ * https://www.openssl.org/source/license.html
  */
-/* Copyright (C) 1995-1998 Eric Young (eay@cryptsoft.com)
- * All rights reserved.
- *
- * This package is an SSL implementation written
- * by Eric Young (eay@cryptsoft.com).
- * The implementation was written so as to conform with Netscapes SSL.
- *
- * This library is free for commercial and non-commercial use as long as
- * the following conditions are aheared to.  The following conditions
- * apply to all code found in this distribution, be it the RC4, RSA,
- * lhash, DES, etc., code; not just the SSL code.  The SSL documentation
- * included with this distribution is covered by the same copyright terms
- * except that the holder is Tim Hudson (tjh@cryptsoft.com).
- *
- * Copyright remains Eric Young's, and as such any Copyright notices in
- * the code are not to be removed.
- * If this package is used in a product, Eric Young should be given attribution
- * as the author of the parts of the library used.
- * This can be in the form of a textual message at program startup or
- * in documentation (online or textual) provided with the package.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- * 1. Redistributions of source code must retain the copyright
- *   notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *   notice, this list of conditions and the following disclaimer in the
- *   documentation and/or other materials provided with the distribution.
- * 3. All advertising materials mentioning features or use of this software
- *   must display the following acknowledgement:
- *   "This product includes cryptographic software written by
- *    Eric Young (eay@cryptsoft.com)"
- *   The word 'cryptographic' can be left out if the rouines from the library
- *   being used are not cryptographic related :-).
- * 4. If you include any Windows specific code (or a derivative thereof) from
- *   the apps directory (application code) you must include an acknowledgement:
- *   "This product includes software written by Tim Hudson (tjh@cryptsoft.com)"
- *
- * THIS SOFTWARE IS PROVIDED BY ERIC YOUNG ``AS IS'' AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
- * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- *
- * The licence and distribution terms for any publically available version or
- * derivative of this code cannot be changed.  i.e. this code cannot simply be
- * copied and put under another distribution licence
- * [including the GNU Public Licence.]
- */
+
 /* ====================================================================
  * Copyright 2002 Sun Microsystems, Inc. ALL RIGHTS RESERVED.
  * ECDH support in OpenSSL originally developed by
@@ -119,10 +18,11 @@ module deimos.openssl.crypto;
 import deimos.openssl._d_util;
 
 import core.stdc.stdlib;
+import core.stdc.time;
 
 public import deimos.openssl.e_os2;
 
-version(OPENSSL_NO_FP_API) {} else {
+version(OPENSSL_NO_NO_STDIO) {} else {
 import core.stdc.stdio;
 }
 
@@ -130,434 +30,340 @@ public import deimos.openssl.stack;
 public import deimos.openssl.safestack;
 public import deimos.openssl.opensslv;
 public import deimos.openssl.ossl_typ;
+public import deimos.openssl.opensslconf;
 
 version (CHARSET_EBCDIC) {
 public import deimos.openssl.ebcdic;
 }
 
-/* Resolve problems on some operating systems with symbol names that clash
-   one way or another */
+/*
+ * Resolve problems on some operating systems with symbol names that clash
+ * one way or another
+ */
 public import deimos.openssl.symhacks;
+
+/+ TODO:
+# if OPENSSL_API_COMPAT < 0x10100000L
+#  include <openssl/opensslv.h>
+# endif
++/
 
 extern (C):
 nothrow:
 
-/* Backward compatibility to SSLeay */
-/* This is more to be used to check the correct DLL is being used
- * in the MS world. */
+/+ TODO:
+# if OPENSSL_API_COMPAT < 0x10100000L
++/
+alias SSLeay OpenSSL_version_num;
+alias SSLeay_version OpenSSL_version;
 alias OPENSSL_VERSION_NUMBER SSLEAY_VERSION_NUMBER;
-enum SSLEAY_VERSION = 0;
-/* enum SSLEAY_OPTIONS = 1; no longer supported */
-enum SSLEAY_CFLAGS = 2;
-enum SSLEAY_BUILT_ON = 3;
-enum SSLEAY_PLATFORM = 4;
-enum SSLEAY_DIR = 5;
+enum SSLEAY_VERSION = OPENSSL_VERSION;
+enum SSLEAY_CFLAGS = OPENSSL_CFLAGS;
+enum SSLEAY_BUILT_ON = OPENSSL_BUILT_ON;
+enum SSLEAY_PLATFORM = OPENSSL_PLATFORM;
+enum SSLEAY_DIR = OPENSSL_DIR;
 
-/* Already declared in ossl_typ.h */
-/+#if 0
-alias crypto_ex_data_st CRYPTO_EX_DATA;
-/* Called when a new object is created */
-typedef int CRYPTO_EX_new(void* parent, void* ptr, CRYPTO_EX_DATA* ad,
-					int idx, c_long argl, void* argp);
-/* Called when an object is free()ed */
-typedef void CRYPTO_EX_free(void* parent, void* ptr, CRYPTO_EX_DATA* ad,
-					int idx, c_long argl, void* argp);
-/* Called when we need to dup an object */
-typedef int CRYPTO_EX_dup(CRYPTO_EX_DATA* to, CRYPTO_EX_DATA* from, void* from_d,
-					int idx, c_long argl, void* argp);
-#endif+/
-
-/* A generic structure to pass assorted data in a expandable way */
-struct openssl_item_st {
-	int code;
-	void* value;		/* Not used for flag attributes */
-	size_t value_size;	/* Max size of value for output, length for input */
-	size_t* value_length;	/* Returned length of value for output */
-	}
-alias openssl_item_st OPENSSL_ITEM;
-
-
-/* When changing the CRYPTO_LOCK_* list, be sure to maintin the text lock
- * names in cryptlib.c
+/*
+ * Old type for allocating dynamic locks. No longer used. Use the new thread
+ * API instead.
  */
+struct CRYPTO_dynlock {
+    int dummy;
+}
 
-enum CRYPTO_LOCK_ERR = 1;
-enum CRYPTO_LOCK_EX_DATA = 2;
-enum CRYPTO_LOCK_X509 = 3;
-enum CRYPTO_LOCK_X509_INFO = 4;
-enum CRYPTO_LOCK_X509_PKEY = 5;
-enum CRYPTO_LOCK_X509_CRL = 6;
-enum CRYPTO_LOCK_X509_REQ = 7;
-enum CRYPTO_LOCK_DSA = 8;
-enum CRYPTO_LOCK_RSA = 9;
-enum CRYPTO_LOCK_EVP_PKEY = 10;
-enum CRYPTO_LOCK_X509_STORE = 11;
-enum CRYPTO_LOCK_SSL_CTX = 12;
-enum CRYPTO_LOCK_SSL_CERT = 13;
-enum CRYPTO_LOCK_SSL_SESSION = 14;
-enum CRYPTO_LOCK_SSL_SESS_CERT = 15;
-enum CRYPTO_LOCK_SSL = 16;
-enum CRYPTO_LOCK_SSL_METHOD = 17;
-enum CRYPTO_LOCK_RAND = 18;
-enum CRYPTO_LOCK_RAND2 = 19;
-enum CRYPTO_LOCK_MALLOC = 20;
-enum CRYPTO_LOCK_BIO = 21;
-enum CRYPTO_LOCK_GETHOSTBYNAME = 22;
-enum CRYPTO_LOCK_GETSERVBYNAME = 23;
-enum CRYPTO_LOCK_READDIR = 24;
-enum CRYPTO_LOCK_RSA_BLINDING = 25;
-enum CRYPTO_LOCK_DH = 26;
-enum CRYPTO_LOCK_MALLOC2 = 27;
-enum CRYPTO_LOCK_DSO = 28;
-enum CRYPTO_LOCK_DYNLOCK = 29;
-enum CRYPTO_LOCK_ENGINE = 30;
-enum CRYPTO_LOCK_UI = 31;
-enum CRYPTO_LOCK_ECDSA = 32;
-enum CRYPTO_LOCK_EC = 33;
-enum CRYPTO_LOCK_ECDH = 34;
-enum CRYPTO_LOCK_BN = 35;
-enum CRYPTO_LOCK_EC_PRE_COMP = 36;
-enum CRYPTO_LOCK_STORE = 37;
-enum CRYPTO_LOCK_COMP = 38;
-enum CRYPTO_LOCK_FIPS = 39;
-enum CRYPTO_LOCK_FIPS2 = 40;
-enum CRYPTO_NUM_LOCKS = 41;
+/+ TODO:
+# endif /* OPENSSL_API_COMPAT */
++/
 
+alias void CRYPTO_RWLOCK;
+
+CRYPTO_RWLOCK* CRYPTO_THREAD_lock_new();
+int CRYPTO_THREAD_read_lock(CRYPTO_RWLOCK* lock);
+int CRYPTO_THREAD_write_lock(CRYPTO_RWLOCK* lock);
+int CRYPTO_THREAD_unlock(CRYPTO_RWLOCK* lock);
+void CRYPTO_THREAD_lock_free(CRYPTO_RWLOCK* lock);
+
+int CRYPTO_atomic_add(int* val, int amount, int* ret, CRYPTO_RWLOCK* lock);
+
+/*
+ * The following can be used to detect memory leaks in the library. If
+ * used, it turns on malloc checking
+ */
+enum CRYPTO_MEM_CHECK_OFF = 0x0;   /* Control only */
+enum CRYPTO_MEM_CHECK_ON = 0x1;   /* Control and mode bit */
+enum CRYPTO_MEM_CHECK_ENABLE = 0x2;   /* Control and mode bit */
+enum CRYPTO_MEM_CHECK_DISABLE = 0x3;   /* Control only */
+
+struct crypto_ex_data_st {
+    STACK_OF!()* sk;
+}
+/+mixin DEFINE_STACK_OF!();+/
+
+/*
+ * Per class, we have a STACK of function pointers.
+ */
+enum CRYPTO_EX_INDEX_SSL = 0;
+enum CRYPTO_EX_INDEX_SSL_CTX = 1;
+enum CRYPTO_EX_INDEX_SSL_SESSION = 2;
+enum CRYPTO_EX_INDEX_X509 = 3;
+enum CRYPTO_EX_INDEX_X509_STORE = 4;
+enum CRYPTO_EX_INDEX_X509_STORE_CTX = 5;
+enum CRYPTO_EX_INDEX_DH = 6;
+enum CRYPTO_EX_INDEX_DSA = 7;
+enum CRYPTO_EX_INDEX_EC_KEY = 8;
+enum CRYPTO_EX_INDEX_RSA = 9;
+enum CRYPTO_EX_INDEX_ENGINE = 10;
+enum CRYPTO_EX_INDEX_UI = 11;
+enum CRYPTO_EX_INDEX_BIO = 12;
+enum CRYPTO_EX_INDEX_APP = 13;
+enum CRYPTO_EX_INDEX_COUNT = 14;
+
+/*
+ * This is the default callbacks, but we can have others as well: this is
+ * needed in Win32 where the application malloc and the library malloc may
+ * not be the same.
+ */
+auto OPENSSL_malloc_init()() {
+    return CRYPTO_set_mem_functions(CRYPTO_malloc, CRYPTO_realloc, CRYPTO_free);
+}
+
+int CRYPTO_mem_ctrl(int mode);
+
+auto OPENSSL_malloc(string file = __FILE__, size_t line = __LINE__)(size_t num) {
+	return CRYPTO_malloc(num, file, line);
+}
+auto OPENSSL_zalloc(string file = __FILE__, size_t line = __LINE__)(size_t num) {
+	return CRYPTO_zalloc(num, file, line);
+}
+auto OPENSSL_realloc(string file = __FILE__, size_t line = __LINE__)(void* addr, size_t num) {
+	return CRYPTO_realloc(addr, num, file, line);
+}
+auto OPENSSL_clear_realloc(string file = __FILE__, size_t line = __LINE__)(void* addr, size_t old_num, size_t num) {
+	CRYPTO_clear_realloc(addr, old_num, num, file, line);
+}
+auto OPENSSL_clear_free(string file = __FILE__, size_t line = __LINE__)(void* addr, size_t num) {
+	return CRYPTO_clear_free(addr, num, file, line);
+}
+auto OPENSSL_free(string file = __FILE__, size_t line = __LINE__)(void* addr) {
+	return CRYPTO_free(addr, file, line);
+}
+auto OPENSSL_memdup(string file = __FILE__, size_t line = __LINE__)(const(void)* str, size_t s) {
+	return CRYPTO_memdup(str, s, file, line);
+}
+auto OPENSSL_strdup(string file = __FILE__, size_t line = __LINE__)(const(char)* str) {
+	return CRYPTO_strdup(str, file, line);
+}
+auto OPENSSL_strndup(string file = __FILE__, size_t line = __LINE__)(const(char)* str, size_t s) {
+	return CRYPTO_strndup(str, s, file, line);
+}
+auto OPENSSL_secure_malloc(string file = __FILE__, size_t line = __LINE__)(size_t num) {
+	return CRYPTO_secure_malloc(num, file, line);
+}
+auto OPENSSL_secure_zalloc(string file = __FILE__, size_t line = __LINE__)(size_t num) {
+	return CRYPTO_secure_zalloc(num, file, line);
+}
+auto OPENSSL_secure_free(string file = __FILE__, size_t line = __LINE__)(void* addr) {
+	return CRYPTO_secure_free(addr, file, line);
+}
+auto OPENSSL_secure_actual_size(string file = __FILE__, size_t line = __LINE__)(void* ptr) {
+	return CRYPTO_secure_actual_size(ptr, file, line);
+}
+
+size_t OPENSSL_strlcpy(char* dst, const(char)* src, size_t siz);
+size_t OPENSSL_strlcat(char* dst, const(char)* src, size_t siz);
+size_t OPENSSL_strnlen(const(char)* str, size_t maxlen);
+char* OPENSSL_buf2hexstr(const(ubyte)* buffer, c_long len);
+ubyte* OPENSSL_hexstr2buf(const(char)* str, long* len);
+int OPENSSL_hexchar2int(ubyte c);
+
+/+ TODO:
+# define OPENSSL_MALLOC_MAX_NELEMS(type)  (((1U<<(sizeof(int)*8-1))-1)/sizeof(type))
++/
+
+c_ulong OpenSSL_version_num();
+const(char)* OpenSSL_version(int type);
+enum OPENSSL_VERSION = 0;
+enum OPENSSL_CFLAGS = 1;
+enum OPENSSL_BUILT_ON = 2;
+enum OPENSSL_PLATFORM = 3;
+enum OPENSSL_DIR = 4;
+enum OPENSSL_ENGINES_DIR = 5;
+
+int OPENSSL_issetugid();
+
+alias CRYPTO_EX_new = void function(void* parent, void* ptr, CRYPTO_EX_DATA* ad,
+                                    int idx, c_long argl, void* argp);
+alias CRYPTO_EX_free = void function(void* parent, void* ptr, CRYPTO_EX_DATA* ad,
+                                     int idx, c_long argl, void* argp);
+alias CRYPTO_EX_dup = int function(CRYPTO_EX_DATA* to, const(CRYPTO_EX_DATA)* from,
+                                   void* srcp, int idx, c_long argl, void* argp);
+// TODO: __owur
+int CRYPTO_get_ex_new_index(int class_index, c_long argl, void* argp,
+                            CRYPTO_EX_new* new_func, CRYPTO_EX_dup* dup_func,
+                            CRYPTO_EX_free* free_func);
+/* No longer use an index. */
+int CRYPTO_free_ex_index(int class_index, int idx);
+
+/*
+ * Initialise/duplicate/free CRYPTO_EX_DATA variables corresponding to a
+ * given class (invokes whatever per-class callbacks are applicable)
+ */
+int CRYPTO_new_ex_data(int class_index, void* obj, CRYPTO_EX_DATA* ad);
+int CRYPTO_dup_ex_data(int class_index, CRYPTO_EX_DATA* to,
+                       const(CRYPTO_EX_DATA)* from);
+void CRYPTO_free_ex_data(int class_index, void* obj, CRYPTO_EX_DATA* ad);
+
+/*
+ * Get/set data in a CRYPTO_EX_DATA variable corresponding to a particular
+ * index (relative to the class type involved)
+ */
+int CRYPTO_set_ex_data(CRYPTO_EX_DATA* ad, int idx, void* val);
+void* CRYPTO_get_ex_data(const(CRYPTO_EX_DATA)* ad,int idx);
+
+// TODO:
+// # if OPENSSL_API_COMPAT < 0x10100000L
+/*
+ * This function cleans up all "ex_data" state. It mustn't be called under
+ * potential race-conditions.
+ */
+void CRYPTO_cleanup_all_ex_data()() {}
+
+/*
+ * The old locking functions have been removed completely without compatibility
+ * macros. This is because the old functions either could not properly report
+ * errors, or the returned error values were not clearly documented.
+ * Replacing the locking functions with with no-ops would cause race condition
+ * issues in the affected applications. It is far better for them to fail at
+ * compile time.
+ * On the other hand, the locking callbacks are no longer used.  Consequently,
+ * the callback management functions can be safely replaced with no-op macros.
+ */
+int CRYPTO_num_locks()() { return 1; }
+void CRYPTO_set_locking_callback()(ExternC!(void function(int mode,int type,
+                                                        const(char)* file,int line)) func) {}
+ExternC!(void function(int mode,int type,const(char)* file,int line)) CRYPTO_get_locking_callback()() { return null; }
+void CRYPTO_set_add_lock_callback()(ExternC!(int function(int* num,int mount,int type,
+                                                          const(char)* file, int line)) func) {}
+ExternC!(void function(int* num,int mount,int type,const(char)* file, int line)) CRYPTO_get_add_lock_callback()() { return null; }
+
+/*
+ * These defines where used in combination with the old locking callbacks,
+ * they are not called anymore, but old code that's not called might still
+ * use them.
+ */
 enum CRYPTO_LOCK = 1;
 enum CRYPTO_UNLOCK = 2;
 enum CRYPTO_READ = 4;
 enum CRYPTO_WRITE = 8;
 
-version (OPENSSL_NO_LOCKING) {
-	void CRYPTO_w_lock()(int type) {}
-	void CRYPTO_w_unlock()(int type) {}
-	void CRYPTO_r_lock()(int type) {}
-	void CRYPTO_r_unlock()(int type) {}
-	void CRYPTO_add()(int* addr, int amount, int type) { *addr += amount; }
-} else {
-	void CRYPTO_w_lock(string file = __FILE__, size_t line = __LINE__)(int type) {
-		CRYPTO_lock(CRYPTO_LOCK|CRYPTO_WRITE,type,file,line);
-	}
-	void CRYPTO_w_unlock(string file = __FILE__, size_t line = __LINE__)(int type) {
-		CRYPTO_lock(CRYPTO_UNLOCK|CRYPTO_WRITE,type,file,line);
-	}
-	void CRYPTO_r_lock(string file = __FILE__, size_t line = __LINE__)(int type) {
-		CRYPTO_lock(CRYPTO_LOCK|CRYPTO_READ,type,file,line);
-	}
-	void CRYPTO_r_unlock(string file = __FILE__, size_t line = __LINE__)(int type) {
-		CRYPTO_lock(CRYPTO_UNLOCK|CRYPTO_READ,type,file,line);
-	}
-	void CRYPTO_add(string file = __FILE__, size_t line = __LINE__)(int* addr, int amount, int type) {
-		CRYPTO_add_lock(addr,amount,type,file,line);
-	}
-}
-
-/* Some applications as well as some parts of OpenSSL need to allocate
-   and deallocate locks in a dynamic fashion.  The following typedef
-   makes this possible in a type-safe manner.  */
-/* CRYPTO_dynlock_value has to be defined by the application. */
-// FIXME: struct CRYPTO_dynlock_value;
-struct CRYPTO_dynlock
-	{
-	int references;
-	CRYPTO_dynlock_value* data;
-	}
-
-
-/* The following can be used to detect memory leaks in the SSLeay library.
- * It used, it turns on malloc checking */
-
-enum CRYPTO_MEM_CHECK_OFF = 0x0;	/* an enume */
-enum CRYPTO_MEM_CHECK_ON = 0x1;	/* a bit */
-enum CRYPTO_MEM_CHECK_ENABLE = 0x2;	/* a bit */
-enum CRYPTO_MEM_CHECK_DISABLE = 0x3;	/* an enume */
-
-/* The following are bit values to turn on or off options connected to the
- * malloc checking functionality */
-
-/* Adds time to the memory checking information */
-enum V_CRYPTO_MDEBUG_TIME = 0x1; /* a bit */
-/* Adds thread number to the memory checking information */
-enum V_CRYPTO_MDEBUG_THREAD = 0x2; /* a bit */
-
-enum V_CRYPTO_MDEBUG_ALL = (V_CRYPTO_MDEBUG_TIME | V_CRYPTO_MDEBUG_THREAD);
-
-
-/* predec of the BIO type */
-import deimos.openssl.bio; /*struct bio_st;*/
-alias bio_st BIO_dummy;
-
-struct crypto_ex_data_st
-	{
-	STACK_OF!() *sk;
-	int dummy; /* gcc is screwing up this data structure :-( */
-	};
-/+mixin DECLARE_STACK_OF!();+/
-
-/* This stuff is basically class callback functions
- * The current classes are SSL_CTX, SSL, SSL_SESSION, and a few more */
-
-struct crypto_ex_data_func_st {
-	c_long argl;	/* Arbitary c_long */
-	void* argp;	/* Arbitary void* */
-	CRYPTO_EX_new* new_func;
-	CRYPTO_EX_free* free_func;
-	CRYPTO_EX_dup* dup_func;
-	}
-alias crypto_ex_data_func_st CRYPTO_EX_DATA_FUNCS;
-
-/+mixin DECLARE_STACK_OF!(CRYPTO_EX_DATA_FUNCS);+/
-
-/* Per class, we have a STACK of CRYPTO_EX_DATA_FUNCS for each CRYPTO_EX_DATA
- * entry.
- */
-
-enum CRYPTO_EX_INDEX_BIO = 0;
-enum CRYPTO_EX_INDEX_SSL = 1;
-enum CRYPTO_EX_INDEX_SSL_CTX = 2;
-enum CRYPTO_EX_INDEX_SSL_SESSION = 3;
-enum CRYPTO_EX_INDEX_X509_STORE = 4;
-enum CRYPTO_EX_INDEX_X509_STORE_CTX = 5;
-enum CRYPTO_EX_INDEX_RSA = 6;
-enum CRYPTO_EX_INDEX_DSA = 7;
-enum CRYPTO_EX_INDEX_DH = 8;
-enum CRYPTO_EX_INDEX_ENGINE = 9;
-enum CRYPTO_EX_INDEX_X509 = 10;
-enum CRYPTO_EX_INDEX_UI = 11;
-enum CRYPTO_EX_INDEX_ECDSA = 12;
-enum CRYPTO_EX_INDEX_ECDH = 13;
-enum CRYPTO_EX_INDEX_COMP = 14;
-enum CRYPTO_EX_INDEX_STORE = 15;
-
-/* Dynamically assigned indexes start from this value (don't use directly, use
- * via CRYPTO_ex_data_new_class). */
-enum CRYPTO_EX_INDEX_USER = 100;
-
-
-/* This is the default callbacks, but we can have others as well:
- * this is needed in Win32 where the application malloc and the
- * library malloc may not be the same.
- */
-void CRYPTO_malloc_init()() {
-	CRYPTO_set_mem_functions(&malloc, &realloc, &free);
-}
-
-/+#if defined CRYPTO_MDEBUG_ALL || defined CRYPTO_MDEBUG_TIME || defined CRYPTO_MDEBUG_THREAD
-# ifndef CRYPTO_MDEBUG /* avoid duplicate #define */
-#  define CRYPTO_MDEBUG
-# endif
-#endif+/
-
-/* Set standard debugging functions (not done by default
- * unless CRYPTO_MDEBUG is defined) */
-void CRYPTO_malloc_debug_init()() {
-	CRYPTO_set_mem_debug_functions(&CRYPTO_dbg_malloc, &CRYPTO_dbg_realloc,
-		&CRYPTO_dbg_free, &CRYPTO_dbg_set_options, &CRYPTO_dbg_get_options);
-}
-
-int CRYPTO_mem_ctrl(int mode);
-int CRYPTO_is_mem_check_on();
-
-/* for applications */
-int MemCheck_start()() { return CRYPTO_mem_ctrl(CRYPTO_MEM_CHECK_ON); }
-int MemCheck_stop()(){ return CRYPTO_mem_ctrl(CRYPTO_MEM_CHECK_OFF); }
-
-/* for library-internal use */
-int MemCheck_on()() { return CRYPTO_mem_ctrl(CRYPTO_MEM_CHECK_ENABLE); }
-int MemCheck_off()() { return CRYPTO_mem_ctrl(CRYPTO_MEM_CHECK_DISABLE); }
-alias CRYPTO_is_mem_check_on is_MemCheck_on;
-
-auto OPENSSL_malloc(string file = __FILE__, size_t line = __LINE__)(int num) {
-	return CRYPTO_malloc(num,file,line);
-}
-auto OPENSSL_strdup(string file = __FILE__, size_t line = __LINE__)(const(char)* str) {
-	return CRYPTO_strdup(str,file,line);
-}
-auto OPENSSL_realloc(string file = __FILE__, size_t line = __LINE__)(void* addr, int num) {
-	return CRYPTO_realloc(addr,num,file,line);
-}
-auto OPENSSL_realloc_clean(string file = __FILE__, size_t line = __LINE__)(void* addr,int old_num,int num) {
-	CRYPTO_realloc_clean(addr,old_num,num,file,line);
-}
-auto OPENSSL_remalloc(string file = __FILE__, size_t line = __LINE__)(void** addr, int num) {
-	return CRYPTO_remalloc(cast(char**)addr,num,file,line);
-}
-alias CRYPTO_free OPENSSL_freeFunc;
-alias CRYPTO_free OPENSSL_free;
-
-auto OPENSSL_malloc_locked(string file = __FILE__, size_t line = __LINE__)(int num) {
-	return CRYPTO_malloc_locked(num, file, line);
-}
-alias CRYPTO_free_locked OPENSSL_free_locked;
-
-
-const(char)* SSLeay_version(int type);
-c_ulong SSLeay();
-
-int OPENSSL_issetugid();
-
-/* An opaque type representing an implementation of "ex_data" support */
-struct st_CRYPTO_EX_DATA_IMPL;
-alias st_CRYPTO_EX_DATA_IMPL CRYPTO_EX_DATA_IMPL;
-/* Return an opaque pointer to the current "ex_data" implementation */
-const(CRYPTO_EX_DATA_IMPL)* CRYPTO_get_ex_data_implementation();
-/* Sets the "ex_data" implementation to be used (if it's not too late) */
-int CRYPTO_set_ex_data_implementation(const(CRYPTO_EX_DATA_IMPL)* i);
-/* Get a new "ex_data" class, and return the corresponding "class_index" */
-int CRYPTO_ex_data_new_class();
-/* Within a given class, get/register a new index */
-int CRYPTO_get_ex_new_index(int class_index, c_long argl, void* argp,
-		CRYPTO_EX_new* new_func, CRYPTO_EX_dup* dup_func,
-		CRYPTO_EX_free* free_func);
-/* Initialise/duplicate/free CRYPTO_EX_DATA variables corresponding to a given
- * class (invokes whatever per-class callbacks are applicable) */
-int CRYPTO_new_ex_data(int class_index, void* obj, CRYPTO_EX_DATA* ad);
-int CRYPTO_dup_ex_data(int class_index, CRYPTO_EX_DATA* to,
-		CRYPTO_EX_DATA* from);
-void CRYPTO_free_ex_data(int class_index, void* obj, CRYPTO_EX_DATA* ad);
-/* Get/set data in a CRYPTO_EX_DATA variable corresponding to a particular index
- * (relative to the class type involved) */
-int CRYPTO_set_ex_data(CRYPTO_EX_DATA* ad, int idx, void* val);
-void* CRYPTO_get_ex_data(const(CRYPTO_EX_DATA)* ad,int idx);
-/* This function cleans up all "ex_data" state. It mustn't be called under
- * potential race-conditions. */
-void CRYPTO_cleanup_all_ex_data();
-
-int CRYPTO_get_new_lockid(char* name);
-
-int CRYPTO_num_locks(); /* return CRYPTO_NUM_LOCKS (shared libs!) */
-void CRYPTO_lock(int mode, int type,const(char)* file,int line);
-void CRYPTO_set_locking_callback(ExternC!(void function(int mode,int type,
-					      const(char)* file,int line)) func);
-ExternC!(void function(int mode,int type,const(char)* file,int line)) CRYPTO_get_locking_callback();
-void CRYPTO_set_add_lock_callback(ExternC!(int function(int* num,int mount,int type,
-					      const(char)* file, int line)) func);
-ExternC!(void function(int* num,int mount,int type,const(char)* file, int line)) CRYPTO_get_add_lock_callback();
-
-/* Don't use this structure directly. */
+/* This structure is no longer used */
 struct crypto_threadid_st {
-	void* ptr;
-	c_ulong val;
-	}
+    int dummy;
+}
 alias crypto_threadid_st CRYPTO_THREADID;
 /* Only use CRYPTO_THREADID_set_[numeric|pointer]() within callbacks */
-void CRYPTO_THREADID_set_numeric(CRYPTO_THREADID* id, c_ulong val);
-void CRYPTO_THREADID_set_pointer(CRYPTO_THREADID* id, void* ptr);
-int CRYPTO_THREADID_set_callback(ExternC!(void function(CRYPTO_THREADID*)) threadid_func);
-ExternC!(void function(CRYPTO_THREADID*)) CRYPTO_THREADID_get_callback();
-void CRYPTO_THREADID_current(CRYPTO_THREADID* id);
-int CRYPTO_THREADID_cmp(const(CRYPTO_THREADID)* a, const(CRYPTO_THREADID)* b);
-void CRYPTO_THREADID_cpy(CRYPTO_THREADID* dest, const(CRYPTO_THREADID)* src);
-c_ulong CRYPTO_THREADID_hash(const(CRYPTO_THREADID)* id);
-version(OPENSSL_NO_DEPRECATED) {} else {
-void CRYPTO_set_id_callback(ExternC!(c_ulong function()) func);
-ExternC!(c_ulong function()) CRYPTO_get_id_callback();
-c_ulong CRYPTO_thread_id();
-}
+void CRYPTO_THREADID_set_numeric()(CRYPTO_THREADID* id, c_ulong val) {}
+void CRYPTO_THREADID_set_pointer()(CRYPTO_THREADID* id, void* ptr) {}
+int CRYPTO_THREADID_set_callback()(ExternC!(void function(CRYPTO_THREADID*)) threadid_func) { return 0; }
+ExternC!(void function(CRYPTO_THREADID*)) CRYPTO_THREADID_get_callback()() { return null; }
+void CRYPTO_THREADID_current()(CRYPTO_THREADID* id) {}
+int CRYPTO_THREADID_cmp()(const(CRYPTO_THREADID)* a, const(CRYPTO_THREADID)* b) { return -1; }
+void CRYPTO_THREADID_cpy()(CRYPTO_THREADID* dest, const(CRYPTO_THREADID)* src) {}
+c_ulong CRYPTO_THREADID_hash()(const(CRYPTO_THREADID)* id) { return 0; }
 
-const(char)* CRYPTO_get_lock_name(int type);
-int CRYPTO_add_lock(int* pointer,int amount,int type, const(char)* file,
-		    int line);
+/+ TODO:
+#  if OPENSSL_API_COMPAT < 0x10000000L
++/
+void CRYPTO_set_id_callback()(ExternC!(c_ulong function()) func) {}
+ExternC!(c_ulong function()) CRYPTO_get_id_callback()() { return null; }
+c_ulong CRYPTO_thread_id()() { return 0; }
+/+ TODO:
+#  endif /* OPENSSL_API_COMPAT < 0x10000000L */
++/
 
-int CRYPTO_get_new_dynlockid();
-void CRYPTO_destroy_dynlockid(int i);
-struct CRYPTO_dynlock_value;
-CRYPTO_dynlock_value* CRYPTO_get_dynlock_value(int i);
-void CRYPTO_set_dynlock_create_callback(ExternC!(CRYPTO_dynlock_value* function(const(char)* file, int line)) dyn_create_function);
-void CRYPTO_set_dynlock_lock_callback(ExternC!(void function(int mode, CRYPTO_dynlock_value* l, const(char)* file, int line)) dyn_lock_function);
-void CRYPTO_set_dynlock_destroy_callback(ExternC!(void function(CRYPTO_dynlock_value* l, const(char)* file, int line)) dyn_destroy_function);
-ExternC!(CRYPTO_dynlock_value* function(const(char)* file,int line)) CRYPTO_get_dynlock_create_callback();
-ExternC!(void function(int mode, CRYPTO_dynlock_value* l, const(char)* file,int line)) CRYPTO_get_dynlock_lock_callback();
-ExternC!(void function(CRYPTO_dynlock_value* l, const(char)* file,int line)) CRYPTO_get_dynlock_destroy_callback();
+void CRYPTO_set_dynlock_create_callback()(ExternC!(CRYPTO_dynlock_value* function(const(char)* file, int line)) dyn_create_function) {}
+void CRYPTO_set_dynlock_lock_callback()(ExternC!(void function(int mode, CRYPTO_dynlock_value* l, const(char)* file, int line)) dyn_lock_function) {}
+void CRYPTO_set_dynlock_destroy_callback()(ExternC!(void function(CRYPTO_dynlock_value* l, const(char)* file, int line)) dyn_destroy_function) {}
+ExternC!(CRYPTO_dynlock_value* function(const(char)* file,int line)) CRYPTO_get_dynlock_create_callback()() { return null; }
+ExternC!(void function(int mode, CRYPTO_dynlock_value* l, const(char)* file,int line)) CRYPTO_get_dynlock_lock_callback()() { return null; }
+ExternC!(void function(CRYPTO_dynlock_value* l, const(char)* file,int line)) CRYPTO_get_dynlock_destroy_callback()() { return null; }
+/+ TODO:
+# endif /* OPENSSL_API_COMPAT < 0x10100000L */
++/
 
-/* CRYPTO_set_mem_functions includes CRYPTO_set_locked_mem_functions --
- * call the latter last if you need different functions */
-int CRYPTO_set_mem_functions(ExternC!(void* function(size_t)) m,ExternC!(void* function(void*,size_t)) r, ExternC!(void function(void*)) f);
-int CRYPTO_set_locked_mem_functions(ExternC!(void* function(size_t)) m, ExternC!(void function(void*)) free_func);
-int CRYPTO_set_mem_ex_functions(ExternC!(void* function(size_t,const(char)*,int)) m,
-                                ExternC!(void* function(void*,size_t,const(char)*,int)) r,
-                                ExternC!(void function(void*)) f);
-int CRYPTO_set_locked_mem_ex_functions(ExternC!(void* function(size_t,const(char)*,int)) m,
-                                       ExternC!(void function(void*)) free_func);
-int CRYPTO_set_mem_debug_functions(ExternC!(void function(void*,int,const(char)*,int,int)) m,
-				   ExternC!(void function(void*,void*,int,const(char)*,int,int)) r,
-				   ExternC!(void function(void*,int)) f,
-				   ExternC!(void function(c_long)) so,
-				   ExternC!(c_long function()) go);
-void CRYPTO_get_mem_functions(ExternC!(void* function(size_t))* m,ExternC!(void* function(void*, size_t))* r, ExternC!(void function(void*))* f);
-void CRYPTO_get_locked_mem_functions(ExternC!(void* function(size_t))* m, ExternC!(void function(void*))* f);
-void CRYPTO_get_mem_ex_functions(ExternC!(void* function(size_t,const(char)*,int))* m,
-                                 ExternC!(void* function(void*, size_t,const(char)*,int))* r,
-                                 ExternC!(void function(void*))* f);
-void CRYPTO_get_locked_mem_ex_functions(ExternC!(void* function(size_t,const(char)*,int))* m,
-                                        ExternC!(void function(void*))* f);
-void CRYPTO_get_mem_debug_functions(ExternC!(void function(void*,int,const(char)*,int,int))* m,
-				    ExternC!(void function(void*,void*,int,const(char)*,int,int))* r,
-				    ExternC!(void function(void*,int))* f,
-				    ExternC!(void function(c_long))* so,
-				    ExternC!(c_long function())* go);
+int CRYPTO_set_mem_functions(ExternC!(void* function(size_t)) m,
+                             ExternC!(void* function(void*,size_t)) r,
+                             ExternC!(void function(void*)) f);
+int CRYPTO_set_mem_debug(int flag);
+void CRYPTO_get_mem_functions(ExternC!(void* function(size_t))* m,
+                              ExternC!(void* function(void*, size_t))* r,
+                              ExternC!(void function(void*))* f);
 
-void* CRYPTO_malloc_locked(int num, const(char)* file, int line);
-void CRYPTO_free_locked(void* ptr);
-void* CRYPTO_malloc(int num, const(char)* file, int line);
+void* CRYPTO_malloc(size_t num, const(char)* file, int line);
+void* CRYPTO_zalloc(size_t num, const(char)* file, int line);
+char* CRYPTO_memdup(const(void)* str, size_t siz, const(char)* file, int line);
 char* CRYPTO_strdup(const(char)* str, const(char)* file, int line);
-void CRYPTO_free(void* ptr);
-void* CRYPTO_realloc(void* addr,int num, const(char)* file, int line);
-void* CRYPTO_realloc_clean(void* addr,int old_num,int num,const(char)* file,
-			   int line);
-void* CRYPTO_remalloc(void* addr,int num, const(char)* file, int line);
+char* CRYPTO_strndup(const(char)* str, size_t s, const(char)* file, int line);
+void CRYPTO_free(void* ptr, const(char)* file, int line);
+void CRYPTO_clear_free(void* ptr, size_t num, const(char)* file, int line);
+void* CRYPTO_realloc(void* addr,size_t num, const(char)* file, int line);
+void* CRYPTO_clear_realloc(void* addr,size_t old_num, size_t num,
+                           const(char)* file, int line);
+
+int CRYPTO_secure_malloc_init(size_t sz, int minsize);
+int CRYPTO_secure_malloc_done();
+void *CRYPTO_secure_malloc(size_t num, const(char)* file, int line);
+void *CRYPTO_secure_zalloc(size_t num, const(char)* file, int line);
+void CRYPTO_secure_free(void* ptr, const(char)* file, int line);
+int CRYPTO_secure_allocated(const(void)* ptr);
+int CRYPTO_secure_malloc_initialized();
+size_t CRYPTO_secure_actual_size(void* ptr);
+size_t CRYPTO_secure_used();
 
 void OPENSSL_cleanse(void* ptr, size_t len);
 
-void CRYPTO_set_mem_debug_options(c_long bits);
-c_long CRYPTO_get_mem_debug_options();
-
-auto CRYPTO_push_info(string file = __FILE__, size_t line = __LINE__)(const(char)* info) {
-	return CRYPTO_push_info_(info, file, line);
+version (OPENSSL_NO_CRYPTO_MDEBUG) {} else {
+int OPENSSL_mem_debug_push(const(char)* info, string file = __FILE__, size_t line = __LINE__) {
+        return CRYPTO_mem_debug_push(info, file, line);
 }
-int CRYPTO_push_info_(const(char)* info, const(char)* file, int line);
-int CRYPTO_pop_info();
-int CRYPTO_remove_all_info();
-
-
-/* Default debugging functions (enabled by CRYPTO_malloc_debug_init() macro;
- * used as default in CRYPTO_MDEBUG compilations): */
-/* The last argument has the following significance:
- *
- * 0:	called before the actual memory allocation has taken place
- * 1:	called after the actual memory allocation has taken place
- */
-void CRYPTO_dbg_malloc(void* addr,int num,const(char)* file,int line,int before_p);
-void CRYPTO_dbg_realloc(void* addr1,void* addr2,int num,const(char)* file,int line,int before_p);
-void CRYPTO_dbg_free(void* addr,int before_p);
-/* Tell the debugging code about options.  By default, the following values
- * apply:
- *
- * 0:                           Clear all options.
- * V_CRYPTO_MDEBUG_TIME (1):    Set the "Show Time" option.
- * V_CRYPTO_MDEBUG_THREAD (2):  Set the "Show Thread Number" option.
- * V_CRYPTO_MDEBUG_ALL (3):     1 + 2
- */
-void CRYPTO_dbg_set_options(c_long bits);
-c_long CRYPTO_dbg_get_options();
-
-
-version(OPENSSL_NO_FP_API) {} else {
-void CRYPTO_mem_leaks_fp(FILE*);
+int OPENSSL_mem_debug_pop()() {
+        return CRYPTO_mem_debug_pop();
 }
-void CRYPTO_mem_leaks(bio_st* bio);
-/* c_ulong order, char* file, int line, int num_bytes, char* addr */
-alias typeof(*(void* function (c_ulong, const(char)*, int, int, void*)).init) CRYPTO_MEM_LEAK_CB;
-void CRYPTO_mem_leaks_cb(CRYPTO_MEM_LEAK_CB* cb);
+int CRYPTO_mem_debug_push(const(char)* info, const(char)* file, int line);
+int CRYPTO_mem_debug_pop();
+
+/*-
+ * Debugging functions (enabled by CRYPTO_set_mem_debug(1))
+ * The flag argument has the following significance:
+ *   0:   called before the actual memory allocation has taken place
+ *   1:   called after the actual memory allocation has taken place
+ */
+void CRYPTO_mem_debug_malloc(void* addr, size_t num, int flag,
+        const(char)* file, int line);
+void CRYPTO_mem_debug_realloc(void* addr1, void* addr2, size_t num, int flag,
+        const(char)* file, int line);
+void CRYPTO_mem_debug_free(void* addr, int flag,
+        const(char)* file, int line);
+
+version(OPENSSL_NO_NO_STDIO) {} else {
+int CRYPTO_mem_leaks_fp(FILE*);
+}
+int CRYPTO_mem_leaks(BIO* bio);
+}
 
 /* die if we have to */
-void OpenSSLDie(const(char)* file,int line,const(char)* assertion);
+// TODO: ossl_noreturn
+void OpenSSLDie(const(char)* assertion, int file, const(char)* line);
+/+ TODO:
+# if OPENSSL_API_COMPAT < 0x10100000L
+#  define OpenSSLDie(f,l,a) OPENSSL_die((a),(f),(l))
+# endif
++/
 void OPENSSL_assert(string file = __FILE__, size_t line = __LINE__)(int e) {
-	if (!e) OpenSSLDie(file, line, "assertion failed"); // No good way to translate.
+    import std.conv: to;
+    if (!e) OpenSSLDie("assertion failed: " ~ to!string(e), file, line); // No good way to translate.
 }
 
-c_ulong* OPENSSL_ia32cap_loc();
-auto OPENSSL_ia32cap()(){ return* OPENSSL_ia32cap_loc(); }
 int OPENSSL_isservice();
 
 int FIPS_mode();
@@ -565,39 +371,107 @@ int FIPS_mode_set(int r);
 
 void OPENSSL_init();
 
-/+ // TODO: only needed for implementation
-#define fips_md_init(alg) fips_md_init_ctx(alg, alg)
+tm* OPENSSL_gmtime(const(time_t)* timer, tm* result);
+int OPENSSL_gmtime_adj(tm* tm, int offset_day, long offset_sec);
+int OPENSSL_gmtime_diff(int* pday, int* psec,
+                        const(tm)* from, const(tm)* to);
 
-#ifdef OPENSSL_FIPS
-#define fips_md_init_ctx(alg, cx) \
-	int alg##_Init(cx##_CTX *c) \
-	{ \
-	if (FIPS_mode()) OpenSSLDie(__FILE__, __LINE__, \
-		"Low level API call to digest " #alg " forbidden in FIPS mode!"); \
-	return private_##alg##_Init(c); \
-	} \
-	int private_##alg##_Init(cx##_CTX *c)
+/*
+ * CRYPTO_memcmp returns zero iff the |len| bytes at |a| and |b| are equal.
+ * It takes an amount of time dependent on |len|, but independent of the
+ * contents of |a| and |b|. Unlike memcmp, it cannot be used to put elements
+ * into a defined order as the return value when a != b is undefined, other
+ * than to be non-zero.
+ */
+// TODO: volatile
+int CRYPTO_memcmp(const(void)* in_a,
+                  const(void)* in_b,
+                  size_t len);
 
-#define fips_cipher_abort(alg) \
-	if (FIPS_mode()) OpenSSLDie(__FILE__, __LINE__, \
-		"Low level API call to cipher " #alg " forbidden in FIPS mode!")
+/* Standard initialisation options */
+enum OPENSSL_INIT_NO_LOAD_CRYPTO_STRINGS = 0x00000001L;
+enum OPENSSL_INIT_LOAD_CRYPTO_STRINGS = 0x00000002L;
+enum OPENSSL_INIT_ADD_ALL_CIPHERS = 0x00000004L;
+enum OPENSSL_INIT_ADD_ALL_DIGESTS = 0x00000008L;
+enum OPENSSL_INIT_NO_ADD_ALL_CIPHERS = 0x00000010L;
+enum OPENSSL_INIT_NO_ADD_ALL_DIGESTS = 0x00000020L;
+enum OPENSSL_INIT_LOAD_CONFIG = 0x00000040L;
+enum OPENSSL_INIT_NO_LOAD_CONFIG = 0x00000080L;
+enum OPENSSL_INIT_ASYNC = 0x00000100L;
+enum OPENSSL_INIT_ENGINE_RDRAND = 0x00000200L;
+enum OPENSSL_INIT_ENGINE_DYNAMIC = 0x00000400L;
+enum OPENSSL_INIT_ENGINE_OPENSSL = 0x00000800L;
+enum OPENSSL_INIT_ENGINE_CRYPTODEV = 0x00001000L;
+enum OPENSSL_INIT_ENGINE_CAPI = 0x00002000L;
+enum OPENSSL_INIT_ENGINE_PADLOCK = 0x00004000L;
+enum OPENSSL_INIT_ENGINE_AFALG = 0x00008000L;
+/* OPENSSL_INIT flag 0x00010000 reserved for internal use */
+/* OPENSSL_INIT flag range 0xfff00000 reserved for OPENSSL_init_ssl() */
+/* Max OPENSSL_INIT flag value is 0x80000000 */
 
-#else
-#define fips_md_init_ctx(alg, cx) \
-	int alg##_Init(cx##_CTX *c)
-#define fips_cipher_abort(alg) while(0)
-#endif
+/* openssl and dasync not counted as builtin */
+enum OPENSSL_INIT_ENGINE_ALL_BUILTIN =
+    (OPENSSL_INIT_ENGINE_RDRAND | OPENSSL_INIT_ENGINE_DYNAMIC
+    | OPENSSL_INIT_ENGINE_CRYPTODEV | OPENSSL_INIT_ENGINE_CAPI |
+    OPENSSL_INIT_ENGINE_PADLOCK);
+
+
+/* Library initialisation functions */
+void OPENSSL_cleanup();
+int OPENSSL_init_crypto(ulong opts, const(OPENSSL_INIT_SETTINGS)* settings);
+int OPENSSL_atexit(ExternC!(void function()) handler);
+void OPENSSL_thread_stop();
+
+/* Low-level control of initialization */
+OPENSSL_INIT_SETTINGS* OPENSSL_INIT_new();
+version (OPENSSL_NO_STDIO) {} else {
+int OPENSSL_INIT_set_config_appname(OPENSSL_INIT_SETTINGS* settings,
+                                    const(char)* config_file);
+}
+void OPENSSL_INIT_free(OPENSSL_INIT_SETTINGS *settings);
+
+/+ TODO:
+# if defined(OPENSSL_THREADS) && !defined(CRYPTO_TDEBUG)
+#  if defined(_WIN32)
+#   if defined(BASETYPES) || defined(_WINDEF_H)
+/* application has to include <windows.h> in order to use this */
+typedef DWORD CRYPTO_THREAD_LOCAL;
+typedef DWORD CRYPTO_THREAD_ID;
+
+typedef LONG CRYPTO_ONCE;
+#    define CRYPTO_ONCE_STATIC_INIT 0
+#   endif
+#  else
+#   include <pthread.h>
+typedef pthread_once_t CRYPTO_ONCE;
+typedef pthread_key_t CRYPTO_THREAD_LOCAL;
+typedef pthread_t CRYPTO_THREAD_ID;
+
+#   define CRYPTO_ONCE_STATIC_INIT PTHREAD_ONCE_INIT
+#  endif
+# endif
+
+# if !defined(CRYPTO_ONCE_STATIC_INIT)
+typedef unsigned int CRYPTO_ONCE;
+typedef unsigned int CRYPTO_THREAD_LOCAL;
+typedef unsigned int CRYPTO_THREAD_ID;
+#  define CRYPTO_ONCE_STATIC_INIT 0
+# endif
 +/
 
-/* CRYPTO_memcmp returns zero iff the |len| bytes at |a| and |b| are equal. It
- * takes an amount of time dependent on |len|, but independent of the contents
- * of |a| and |b|. Unlike memcmp, it cannot be used to put elements into a
- * defined order as the return value when a != b is undefined, other than to be
- * non-zero. */
-int CRYPTO_memcmp(const(void)* a, const(void)* b, size_t len);
+int CRYPTO_THREAD_run_once(CRYPTO_ONCE* once, ExternC!(void function()) init);
+
+int CRYPTO_THREAD_init_local(CRYPTO_THREAD_LOCAL* key, ExternC!(void function(void*)) cleanup);
+void* CRYPTO_THREAD_get_local(CRYPTO_THREAD_LOCAL* key);
+int CRYPTO_THREAD_set_local(CRYPTO_THREAD_LOCAL* key, void* val);
+int CRYPTO_THREAD_cleanup_local(CRYPTO_THREAD_LOCAL* key);
+
+CRYPTO_THREAD_ID CRYPTO_THREAD_get_current_id();
+int CRYPTO_THREAD_compare_id(CRYPTO_THREAD_ID a, CRYPTO_THREAD_ID b);
 
 /* BEGIN ERROR CODES */
-/* The following lines are auto generated by the script mkerr.pl. Any changes
+/*
+ * The following lines are auto generated by the script mkerr.pl. Any changes
  * made after this point may be overwritten when the script is next run.
  */
 void ERR_load_CRYPTO_strings();
@@ -605,17 +479,19 @@ void ERR_load_CRYPTO_strings();
 /* Error codes for the CRYPTO functions. */
 
 /* Function codes. */
+enum CRYPTO_F_CRYPTO_DUP_EX_DATA = 110;
+enum CRYPTO_F_CRYPTO_FREE_EX_DATA = 111;
 enum CRYPTO_F_CRYPTO_GET_EX_NEW_INDEX = 100;
-enum CRYPTO_F_CRYPTO_GET_NEW_DYNLOCKID = 103;
-enum CRYPTO_F_CRYPTO_GET_NEW_LOCKID = 101;
+enum CRYPTO_F_CRYPTO_MEMDUP = 115;
+enum CRYPTO_F_CRYPTO_NEW_EX_DATA = 112;
 enum CRYPTO_F_CRYPTO_SET_EX_DATA = 102;
-enum CRYPTO_F_DEF_ADD_INDEX = 104;
-enum CRYPTO_F_DEF_GET_CLASS = 105;
 enum CRYPTO_F_FIPS_MODE_SET = 109;
-enum CRYPTO_F_INT_DUP_EX_DATA = 106;
-enum CRYPTO_F_INT_FREE_EX_DATA = 107;
-enum CRYPTO_F_INT_NEW_EX_DATA = 108;
+enum CRYPTO_F_GET_AND_LOCK = 113;
+enum CRYPTO_F_OPENSSL_BUF2HEXSTR = 117;
+enum CRYPTO_F_OPENSSL_HEXSTR2BUF = 118;
+enum CRYPTO_F_OPENSSL_INIT_CRYPTO = 116;
 
 /* Reason codes. */
 enum CRYPTO_R_FIPS_MODE_NOT_SUPPORTED = 101;
-enum CRYPTO_R_NO_DYNLOCK_CREATE_CALLBACK = 100;
+enum CRYPTO_R_ILLEGAL_HEX_DIGIT = 102;
+enum CRYPTO_R_ODD_NUMBER_OF_DIGITS = 103;

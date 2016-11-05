@@ -454,6 +454,7 @@ nothrow:
 
 # define ASN1_ADB_TEMPLATE(name) \
         static const ASN1_TEMPLATE name##_tt
++/
 
 /*
  * This is the ASN1 template structure that defines a wrapper round the

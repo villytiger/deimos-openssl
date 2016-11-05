@@ -1,55 +1,10 @@
-/* ====================================================================
- * Copyright (c) 1998-2001 The OpenSSL Project.  All rights reserved.
+/*
+ * Copyright 2001-2016 The OpenSSL Project Authors. All Rights Reserved.
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *   notice, this list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form must reproduce the above copyright
- *   notice, this list of conditions and the following disclaimer in
- *   the documentation and/or other materials provided with the
- *   distribution.
- *
- * 3. All advertising materials mentioning features or use of this
- *   software must display the following acknowledgment:
- *   "This product includes software developed by the OpenSSL Project
- *   for use in the OpenSSL Toolkit. (http://www.openssl.org/)"
- *
- * 4. The names "OpenSSL Toolkit" and "OpenSSL Project" must not be used to
- *   endorse or promote products derived from this software without
- *   prior written permission. For written permission, please contact
- *   openssl-core@openssl.org.
- *
- * 5. Products derived from this software may not be called "OpenSSL"
- *   nor may "OpenSSL" appear in their names without prior written
- *   permission of the OpenSSL Project.
- *
- * 6. Redistributions of any form whatsoever must retain the following
- *   acknowledgment:
- *   "This product includes software developed by the OpenSSL Project
- *   for use in the OpenSSL Toolkit (http://www.openssl.org/)"
- *
- * THIS SOFTWARE IS PROVIDED BY THE OpenSSL PROJECT ``AS IS'' AND ANY
- * EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
- * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE OpenSSL PROJECT OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
- * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
- * OF THE POSSIBILITY OF SUCH DAMAGE.
- * ====================================================================
- *
- * This product includes cryptographic software written by Eric Young
- * (eay@cryptsoft.com).  This product includes software written by Tim
- * Hudson (tjh@cryptsoft.com).
- *
+ * Licensed under the OpenSSL license (the "License").  You may not use
+ * this file except in compliance with the License.  You can obtain a copy
+ * in the file LICENSE in the source distribution or at
+ * https://www.openssl.org/source/license.html
  */
 
 module deimos.openssl.ossl_typ;
@@ -98,17 +53,23 @@ alias int ASN1_BOOLEAN;
 alias int ASN1_NULL;
 }
 
+struct asn1_object_st;
+alias asn1_object_st ASN1_OBJECT;
+
 import deimos.openssl.asn1t;
 alias ASN1_ITEM_st ASN1_ITEM;
 
 struct asn1_pctx_st;
 alias asn1_pctx_st ASN1_PCTX;
 
-//#ifdef OPENSSL_SYS_WIN32
+struct asn1_sctx_st;
+alias asn1_sctx_st ASN1_SCTX;
+
+//#ifdef _WIN32
 //#undef X509_NAME
 //#undef X509_EXTENSIONS
-//#undef X509_CERT_PAIR
 //#undef PKCS7_ISSUER_AND_SERIAL
+//#undef PKCS7_SIGNER_INFO
 //#undef OCSP_REQUEST
 //#undef OCSP_RESPONSE
 //#endif
@@ -116,6 +77,9 @@ alias asn1_pctx_st ASN1_PCTX;
 //#ifdef BIGNUM
 //#undef BIGNUM
 //#endif
+struct dane_st;
+struct bio_st;
+alias bio_st BIO;
 import deimos.openssl.bn;
 alias bignum_st BIGNUM;
 struct bignum_ctx;
@@ -132,8 +96,10 @@ alias buf_mem_st BUF_MEM;
 import deimos.openssl.evp;
 alias evp_cipher_st EVP_CIPHER;
 alias evp_cipher_ctx_st EVP_CIPHER_CTX;
-alias env_md_st EVP_MD;
-alias env_md_ctx_st EVP_MD_CTX;
+struct evp_md_st;
+alias evp_md_st EVP_MD;
+struct evp_md_ctx_st;
+alias evp_md_ctx_st EVP_MD_CTX;
 alias evp_pkey_st EVP_PKEY;
 
 struct evp_pkey_asn1_method_st;
@@ -142,6 +108,10 @@ struct evp_pkey_method_st;
 alias evp_pkey_method_st EVP_PKEY_METHOD;
 struct evp_pkey_ctx_st;
 alias evp_pkey_ctx_st EVP_PKEY_CTX;
+
+alias evp_Encode_Ctx_st EVP_ENCODE_CTX;
+
+alias hmac_ctx_st HMAC_CTX;
 
 import deimos.openssl.dh;
 /*struct dh_st;*/
@@ -161,14 +131,16 @@ alias rsa_st RSA;
 /*struct rsa_meth_st;*/
 alias rsa_meth_st RSA_METHOD;
 
+struct ec_key_st;
+alias ec_key_st EC_KEY;
+
+struct ec_key_method_st;
+alias ec_key_method_st EC_KEY_METHOD;
+
 import deimos.openssl.rand;
 alias rand_meth_st RAND_METHOD;
 
-struct ecdh_method;
-alias ecdh_method ECDH_METHOD;
-struct ecdsa_method;
-alias ecdsa_method ECDSA_METHOD;
-
+alias ssl_dane_st SSL_DANE;
 import deimos.openssl.x509;
 import deimos.openssl.x509_vfy;
 alias x509_st X509;
@@ -182,6 +154,12 @@ alias X509_pubkey_st X509_PUBKEY;
 alias x509_store_st X509_STORE;
 /*struct x509_store_ctx_st;*/
 alias x509_store_ctx_st X509_STORE_CTX;
+
+alias x509_object_st X509_OBJECT;
+alias x509_lookup_st X509_LOOKUP;
+alias x509_lookup_method_st X509_LOOKUP_METHOD;
+alias X509_VERIFY_PARAM_st X509_VERIFY_PARAM;
+
 alias pkcs8_priv_key_info_st PKCS8_PRIV_KEY_INFO;
 
 import deimos.openssl.x509v3;
@@ -189,21 +167,18 @@ alias v3_ext_ctx X509V3_CTX;
 import deimos.openssl.conf;
 alias conf_st CONF;
 
-struct store_st;
-alias store_st STORE;
-struct store_method_st;
-alias store_method_st STORE_METHOD;
+alias ossl_init_settings_st OPENSSL_INIT_SETTINGS;
 
 struct ui_st;
 alias ui_st UI;
 struct ui_method_st;
 alias ui_method_st UI_METHOD;
 
-struct st_ERR_FNS;
-alias st_ERR_FNS ERR_FNS;
-
 struct engine_st;
 alias engine_st ENGINE;
+
+alias comp_ctx_st COMP_CTX;
+alias comp_method_st COMP_METHOD;
 
 struct X509_POLICY_NODE_st;
 alias X509_POLICY_NODE_st X509_POLICY_NODE;
@@ -219,19 +194,8 @@ alias DIST_POINT_st DIST_POINT;
 alias ISSUING_DIST_POINT_st ISSUING_DIST_POINT;
 alias NAME_CONSTRAINTS_st NAME_CONSTRAINTS;
 
-  /* If placed in pkcs12.h, we end up with a circular depency with pkcs7.h */
-mixin template DECLARE_PKCS12_STACK_OF (type) { /* Nothing */ }
-//#define IMPLEMENT_PKCS12_STACK_OF!(type) /* Nothing */
-
 import deimos.openssl.crypto;
 alias crypto_ex_data_st CRYPTO_EX_DATA;
-/* Callback types for crypto.h */
-alias typeof(*(ExternC!(int function(void* parent, void* ptr, CRYPTO_EX_DATA* ad,
-					int idx, c_long argl, void* argp))).init) CRYPTO_EX_new;
-alias typeof(*(ExternC!(void function(void* parent, void* ptr, CRYPTO_EX_DATA* ad,
-					int idx, c_long argl, void* argp))).init) CRYPTO_EX_free;
-alias typeof(*(ExternC!(int function(CRYPTO_EX_DATA* to, CRYPTO_EX_DATA* from, void* from_d,
-					int idx, c_long argl, void* argp))).init) CRYPTO_EX_dup;
 
 import deimos.openssl.ocsp;
 struct ocsp_req_ctx_st;
@@ -240,3 +204,12 @@ alias ocsp_req_ctx_st OCSP_REQ_CTX;
 alias ocsp_response_st OCSP_RESPONSE;
 /*struct ocsp_responder_id_st;*/
 alias ocsp_responder_id_st OCSP_RESPID;
+
+alias ct_st SCT;
+alias sct_ctx_st SCT_CTX;
+alias ctlog_st CTLOG;
+alias ctlog_store_st CTLOG_STORE;
+alias ct_policy_eval_ctx_st CT_POLICY_EVAL_CTX;
+
+alias intmax_t ossl_intmax_t;
+alias uintmax_t ossl_uintmax_t;

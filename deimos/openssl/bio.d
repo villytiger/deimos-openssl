@@ -40,36 +40,36 @@ extern (C):
 nothrow:
 
 /* There are the classes of BIOs */
-# define BIO_TYPE_DESCRIPTOR     0x0100 /* socket, fd, connect or accept */
-# define BIO_TYPE_FILTER         0x0200
-# define BIO_TYPE_SOURCE_SINK    0x0400
+enum BIO_TYPE_DESCRIPTOR = 0x0100; /* socket, fd, connect or accept */
+enum BIO_TYPE_FILTER = 0x0200;
+enum BIO_TYPE_SOURCE_SINK = 0x0400;
 
 /* These are the 'types' of BIOs */
 enum BIO_TYPE_NONE = 0;
-# define BIO_TYPE_MEM            ( 1|BIO_TYPE_SOURCE_SINK)
-# define BIO_TYPE_FILE           ( 2|BIO_TYPE_SOURCE_SINK)
+enum BIO_TYPE_MEM = ( 1|BIO_TYPE_SOURCE_SINK);
+enum BIO_TYPE_FILE = ( 2|BIO_TYPE_SOURCE_SINK);
 
-# define BIO_TYPE_FD             ( 4|BIO_TYPE_SOURCE_SINK|BIO_TYPE_DESCRIPTOR)
-# define BIO_TYPE_SOCKET         ( 5|BIO_TYPE_SOURCE_SINK|BIO_TYPE_DESCRIPTOR)
-# define BIO_TYPE_NULL           ( 6|BIO_TYPE_SOURCE_SINK)
-# define BIO_TYPE_SSL            ( 7|BIO_TYPE_FILTER)
-# define BIO_TYPE_MD             ( 8|BIO_TYPE_FILTER)
-# define BIO_TYPE_BUFFER         ( 9|BIO_TYPE_FILTER)
-# define BIO_TYPE_CIPHER         (10|BIO_TYPE_FILTER)
-# define BIO_TYPE_BASE64         (11|BIO_TYPE_FILTER)
-# define BIO_TYPE_CONNECT        (12|BIO_TYPE_SOURCE_SINK|BIO_TYPE_DESCRIPTOR)
-# define BIO_TYPE_ACCEPT         (13|BIO_TYPE_SOURCE_SINK|BIO_TYPE_DESCRIPTOR)
+enum BIO_TYPE_FD = ( 4|BIO_TYPE_SOURCE_SINK|BIO_TYPE_DESCRIPTOR);
+enum BIO_TYPE_SOCKET = ( 5|BIO_TYPE_SOURCE_SINK|BIO_TYPE_DESCRIPTOR);
+enum BIO_TYPE_NULL = ( 6|BIO_TYPE_SOURCE_SINK);
+enum BIO_TYPE_SSL = ( 7|BIO_TYPE_FILTER);
+enum BIO_TYPE_MD = ( 8|BIO_TYPE_FILTER);
+enum BIO_TYPE_BUFFER = ( 9|BIO_TYPE_FILTER);
+enum BIO_TYPE_CIPHER = (10|BIO_TYPE_FILTER);
+enum BIO_TYPE_BASE64 = (11|BIO_TYPE_FILTER);
+enum BIO_TYPE_CONNECT = (12|BIO_TYPE_SOURCE_SINK|BIO_TYPE_DESCRIPTOR);
+enum BIO_TYPE_ACCEPT = (13|BIO_TYPE_SOURCE_SINK|BIO_TYPE_DESCRIPTOR);
 
-# define BIO_TYPE_NBIO_TEST      (16|BIO_TYPE_FILTER)/* server proxy BIO */
-# define BIO_TYPE_NULL_FILTER    (17|BIO_TYPE_FILTER)
-# define BIO_TYPE_BIO            (19|BIO_TYPE_SOURCE_SINK)/* half a BIO pair */
-# define BIO_TYPE_LINEBUFFER     (20|BIO_TYPE_FILTER)
-# define BIO_TYPE_DGRAM          (21|BIO_TYPE_SOURCE_SINK|BIO_TYPE_DESCRIPTOR)
+enum BIO_TYPE_NBIO_TEST = (16|BIO_TYPE_FILTER);/* server proxy BIO */
+enum BIO_TYPE_NULL_FILTER = (17|BIO_TYPE_FILTER);
+enum BIO_TYPE_BIO = (19|BIO_TYPE_SOURCE_SINK);/* half a BIO pair */
+enum BIO_TYPE_LINEBUFFER = (20|BIO_TYPE_FILTER);
+enum BIO_TYPE_DGRAM = (21|BIO_TYPE_SOURCE_SINK|BIO_TYPE_DESCRIPTOR);
 version (OPENSSL_NO_SCTP) {} else {
-#  define BIO_TYPE_DGRAM_SCTP    (24|BIO_TYPE_SOURCE_SINK|BIO_TYPE_DESCRIPTOR)
+enum BIO_TYPE_DGRAM_SCTP = (24|BIO_TYPE_SOURCE_SINK|BIO_TYPE_DESCRIPTOR);
 }
 
-#define BIO_TYPE_START           128
+enum BIO_TYPE_START = 128;
 
 /*
  * BIO_FILENAME_READ|BIO_CLOSE to open or close on free.
@@ -131,11 +131,11 @@ enum BIO_CTRL_DGRAM_SET_PEER = 44; /* Destination for the data */
 
 enum BIO_CTRL_DGRAM_SET_NEXT_TIMEOUT = 45;   /* Next DTLS handshake timeout
                                               * to adjust socket timeouts */
-# define BIO_CTRL_DGRAM_SET_DONT_FRAG      48
+enum BIO_CTRL_DGRAM_SET_DONT_FRAG = 48;
 
-# define BIO_CTRL_DGRAM_GET_MTU_OVERHEAD   49
+enum BIO_CTRL_DGRAM_GET_MTU_OVERHEAD = 49;
 
-# define BIO_CTRL_DGRAM_SET_PEEK_MODE      50
+enum BIO_CTRL_DGRAM_SET_PEEK_MODE = 50;
 
 version(OPENSSL_NO_SCTP) {} else {
     /* SCTP stuff */
@@ -177,9 +177,11 @@ enum BIO_FLAGS_BASE64_NO_NL = 0x100;
  * BIO_FLAGS_NONCLEAR_RST means we should't clear data on reset.
  */
 enum BIO_FLAGS_MEM_RDONLY = 0x200;
-# define BIO_FLAGS_NONCLEAR_RST  0x400
+enum BIO_FLAGS_NONCLEAR_RST = 0x400;
 
+union bio_addr_st;
 alias bio_addr_st BIO_ADDR;
+struct bio_addrinfo_st;
 alias bio_addrinfo_st BIO_ADDRINFO;
 
 int BIO_get_new_index();
@@ -253,6 +255,7 @@ void BIO_set_callback(BIO* b, BIO_callback_fn callback);
 char* BIO_get_callback_arg(const(BIO)* b);
 void BIO_set_callback_arg(BIO* b, char* arg);
 
+struct bio_method_st;
 alias bio_method_st BIO_METHOD;
 
 const(char)* BIO_method_name(const(BIO)* b);
@@ -358,7 +361,7 @@ enum BIO_C_GET_SUFFIX = 152;
 enum BIO_C_SET_EX_ARG = 153;
 enum BIO_C_GET_EX_ARG = 154;
 
-# define BIO_C_SET_CONNECT_MODE                  155
+enum BIO_C_SET_CONNECT_MODE = 155;
 
 auto BIO_set_app_data()(BIO* s, void* arg) { return BIO_set_ex_data(s,0,arg); }
 auto BIO_get_app_data()(BIO* s) { return BIO_get_ex_data(s,0); }
@@ -368,9 +371,9 @@ auto BIO_set_nbio()(BIO* b,n)	{ return BIO_ctrl(b,BIO_C_SET_NBIO,(n),null); }
 version (OPENSSL_NO_SOCK) {} else {
 /* IP families we support, for BIO_s_connect() and BIO_s_accept() */
 /* Note: the underlying operating system may not support some of them */
-#  define BIO_FAMILY_IPV4                         4
-#  define BIO_FAMILY_IPV6                         6
-#  define BIO_FAMILY_IPANY                        256
+enum BIO_FAMILY_IPV4 = 4;
+enum BIO_FAMILY_IPV6 = 6;
+enum BIO_FAMILY_IPANY = 256;
 
 /* BIO_s_connect() */
 auto BIO_set_conn_hostname()(BIO* b, char* name) { return BIO_ctrl(b,BIO_C_SET_CONNECT,0,name); }
@@ -398,8 +401,8 @@ auto BIO_get_accept_ip_family()(BIO* b) { return BIO_ctrl(b,BIO_C_GET_ACCEPT,4,n
 
 /* Aliases kept for backward compatibility */
 enum BIO_BIND_NORMAL = 0;
-#  define BIO_BIND_REUSEADDR              BIO_SOCK_REUSEADDR
-#  define BIO_BIND_REUSEADDR_IF_UNUSED    BIO_SOCK_REUSEADDR
+enum BIO_BIND_REUSEADDR = BIO_SOCK_REUSEADDR;
+enum BIO_BIND_REUSEADDR_IF_UNUSED = BIO_SOCK_REUSEADDR;
 auto BIO_set_bind_mode()(BIO* b,c_long mode) { return BIO_ctrl(b,BIO_C_SET_BIND_MODE,mode,null); }
 auto BIO_get_bind_mode()(BIO* b) { return BIO_ctrl(b,BIO_C_GET_BIND_MODE,0,null); }
 
@@ -652,21 +655,21 @@ enum BIO_hostserv_priorities {
     BIO_PARSE_PRIO_HOST, BIO_PARSE_PRIO_SERV
 }
 int BIO_parse_hostserv(const(char)* hostserv, char** host, char** service,
-                       enum BIO_hostserv_priorities hostserv_prio);
+                       BIO_hostserv_priorities hostserv_prio);
 enum BIO_lookup_type {
     BIO_LOOKUP_CLIENT, BIO_LOOKUP_SERVER
 }
 int BIO_lookup(const(char)* host, const(char)* service,
-               enum BIO_lookup_type lookup_type,
+               BIO_lookup_type lookup_type,
                int family, int socktype, BIO_ADDRINFO** res);
 int BIO_sock_error(int sock);
 int BIO_socket_ioctl(int fd, c_long type, void* arg);
 int BIO_socket_nbio(int fd,int mode);
 int BIO_sock_init();
 // TODO:
-# if OPENSSL_API_COMPAT < 0x10100000L
+// # if OPENSSL_API_COMPAT < 0x10100000L
 void BIO_sock_cleanup();
-# endif
+// # endif
 int BIO_set_tcp_ndelay(int sock,int turn_on);
 
 /+ TODO:
@@ -688,13 +691,13 @@ enum BIO_sock_info_type {
     BIO_SOCK_INFO_ADDRESS
 }
 int BIO_sock_info(int sock,
-                  enum BIO_sock_info_type type, union BIO_sock_info_u* info);
+                  BIO_sock_info_type type, BIO_sock_info_u* info);
 
-#  define BIO_SOCK_REUSEADDR    0x01
-#  define BIO_SOCK_V6_ONLY      0x02
-#  define BIO_SOCK_KEEPALIVE    0x04
-#  define BIO_SOCK_NONBLOCK     0x08
-#  define BIO_SOCK_NODELAY      0x10
+enum BIO_SOCK_REUSEADDR = 0x01;
+enum BIO_SOCK_V6_ONLY = 0x02;
+enum BIO_SOCK_KEEPALIVE = 0x04;
+enum BIO_SOCK_NONBLOCK = 0x08;
+enum BIO_SOCK_NODELAY = 0x10;
 
 int BIO_socket(int domain, int socktype, int protocol, int options);
 int BIO_connect(int sock, const(BIO_ADDR)* addr, int options);
@@ -769,19 +772,19 @@ int ERR_load_BIO_strings();
 
 /* Function codes. */
 enum BIO_F_ACPT_STATE = 100;
-# define BIO_F_ADDR_STRINGS                               134
+enum BIO_F_ADDR_STRINGS = 134;
 enum BIO_F_BIO_ACCEPT = 101;
-# define BIO_F_BIO_ACCEPT_EX                              137
-# define BIO_F_BIO_ADDR_NEW                               144
+enum BIO_F_BIO_ACCEPT_EX = 137;
+enum BIO_F_BIO_ADDR_NEW = 144;
 enum BIO_F_BIO_CALLBACK_CTRL = 131;
-# define BIO_F_BIO_CONNECT                                138
+enum BIO_F_BIO_CONNECT = 138;
 enum BIO_F_BIO_CTRL = 103;
 enum BIO_F_BIO_GETS = 104;
 enum BIO_F_BIO_GET_HOST_IP = 106;
-# define BIO_F_BIO_GET_NEW_INDEX                          102
+enum BIO_F_BIO_GET_NEW_INDEX = 102;
 enum BIO_F_BIO_GET_PORT = 107;
-# define BIO_F_BIO_LISTEN                                 139
-# define BIO_F_BIO_LOOKUP                                 135
+enum BIO_F_BIO_LISTEN = 139;
+enum BIO_F_BIO_LOOKUP = 135;
 enum BIO_F_BIO_MAKE_PAIR = 121;
 enum BIO_F_BIO_NEW = 108;
 enum BIO_F_BIO_NEW_FILE = 109;
@@ -790,19 +793,19 @@ enum BIO_F_BIO_NREAD = 123;
 enum BIO_F_BIO_NREAD0 = 124;
 enum BIO_F_BIO_NWRITE = 125;
 enum BIO_F_BIO_NWRITE0 = 122;
-# define BIO_F_BIO_PARSE_HOSTSERV                         136
+enum BIO_F_BIO_PARSE_HOSTSERV = 136;
 enum BIO_F_BIO_PUTS = 110;
 enum BIO_F_BIO_READ = 111;
-# define BIO_F_BIO_SOCKET                                 140
-# define BIO_F_BIO_SOCKET_NBIO                            142
-# define BIO_F_BIO_SOCK_INFO                              141
+enum BIO_F_BIO_SOCKET = 140;
+enum BIO_F_BIO_SOCKET_NBIO = 142;
+enum BIO_F_BIO_SOCK_INFO = 141;
 enum BIO_F_BIO_SOCK_INIT = 112;
 enum BIO_F_BIO_WRITE = 113;
 enum BIO_F_BUFFER_CTRL = 114;
 enum BIO_F_CONN_CTRL = 127;
 enum BIO_F_CONN_STATE = 115;
 enum BIO_F_DGRAM_SCTP_READ = 132;
-# define BIO_F_DGRAM_SCTP_WRITE                           133
+enum BIO_F_DGRAM_SCTP_WRITE = 133;
 enum BIO_F_FILE_CTRL = 116;
 enum BIO_F_FILE_READ = 130;
 enum BIO_F_LINEBUFFER_CTRL = 129;
@@ -811,38 +814,38 @@ enum BIO_F_SSL_NEW = 118;
 
 /* Reason codes. */
 enum BIO_R_ACCEPT_ERROR = 100;
-# define BIO_R_ADDRINFO_ADDR_IS_NOT_AF_INET               141
-# define BIO_R_AMBIGUOUS_HOST_OR_SERVICE                  129
+enum BIO_R_ADDRINFO_ADDR_IS_NOT_AF_INET = 141;
+enum BIO_R_AMBIGUOUS_HOST_OR_SERVICE = 129;
 enum BIO_R_BAD_FOPEN_MODE = 101;
 enum BIO_R_BROKEN_PIPE = 124;
 enum BIO_R_CONNECT_ERROR = 103;
 enum BIO_R_GETHOSTBYNAME_ADDR_IS_NOT_AF_INET = 107;
-# define BIO_R_GETSOCKNAME_ERROR                          132
-# define BIO_R_GETSOCKNAME_TRUNCATED_ADDRESS              133
-# define BIO_R_GETTING_SOCKTYPE                           134
+enum BIO_R_GETSOCKNAME_ERROR = 132;
+enum BIO_R_GETSOCKNAME_TRUNCATED_ADDRESS = 133;
+enum BIO_R_GETTING_SOCKTYPE = 134;
 enum BIO_R_INVALID_ARGUMENT = 125;
-# define BIO_R_INVALID_SOCKET                             135
+enum BIO_R_INVALID_SOCKET = 135;
 enum BIO_R_IN_USE = 123;
-# define BIO_R_LISTEN_V6_ONLY                             136
-# define BIO_R_LOOKUP_RETURNED_NOTHING                    142
-# define BIO_R_MALFORMED_HOST_OR_SERVICE                  130
+enum BIO_R_LISTEN_V6_ONLY = 136;
+enum BIO_R_LOOKUP_RETURNED_NOTHING = 142;
+enum BIO_R_MALFORMED_HOST_OR_SERVICE = 130;
 enum BIO_R_NBIO_CONNECT_ERROR = 110;
-# define BIO_R_NO_ACCEPT_ADDR_OR_SERVICE_SPECIFIED        143
-# define BIO_R_NO_HOSTNAME_OR_SERVICE_SPECIFIED           144
+enum BIO_R_NO_ACCEPT_ADDR_OR_SERVICE_SPECIFIED = 143;
+enum BIO_R_NO_HOSTNAME_OR_SERVICE_SPECIFIED = 144;
 enum BIO_R_NO_PORT_DEFINED = 113;
 enum BIO_R_NO_SUCH_FILE = 128;
 enum BIO_R_NULL_PARAMETER = 115;
 enum BIO_R_UNABLE_TO_BIND_SOCKET = 117;
 enum BIO_R_UNABLE_TO_CREATE_SOCKET = 118;
-# define BIO_R_UNABLE_TO_KEEPALIVE                        137
+enum BIO_R_UNABLE_TO_KEEPALIVE = 137;
 enum BIO_R_UNABLE_TO_LISTEN_SOCKET = 119;
-# define BIO_R_UNABLE_TO_NODELAY                          138
-# define BIO_R_UNABLE_TO_REUSEADDR                        139
-# define BIO_R_UNAVAILABLE_IP_FAMILY                      145
+enum BIO_R_UNABLE_TO_NODELAY = 138;
+enum BIO_R_UNABLE_TO_REUSEADDR = 139;
+enum BIO_R_UNAVAILABLE_IP_FAMILY = 145;
 enum BIO_R_UNINITIALIZED = 120;
-# define BIO_R_UNKNOWN_INFO_TYPE                          140
-# define BIO_R_UNSUPPORTED_IP_FAMILY                      146
+enum BIO_R_UNKNOWN_INFO_TYPE = 140;
+enum BIO_R_UNSUPPORTED_IP_FAMILY = 146;
 enum BIO_R_UNSUPPORTED_METHOD = 121;
-# define BIO_R_UNSUPPORTED_PROTOCOL_FAMILY                131
+enum BIO_R_UNSUPPORTED_PROTOCOL_FAMILY = 131;
 enum BIO_R_WRITE_TO_READ_ONLY_BIO = 126;
 enum BIO_R_WSASTARTUP = 122;
